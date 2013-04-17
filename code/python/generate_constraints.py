@@ -21,18 +21,18 @@ from collections import deque
 import operator
 
 #NUM_FEATURE = 3000
-NUM_NODES = 5118
+NUM_NODES = 5209
 NUM_CATEGORY = 6
 
 #number of local regions and local region size
-LOCAL_MAX = 10
-NODE_MAX = 30
+region_num = 9
+region_size = 50
 
 
 # read usercategory file and get user * category matrix
 # use usercategory information to get chunks information and neglinks information
-def get_usercategory():
-    in_file = open("../data/blogcatalog/usercategory.txt")
+def get_usercategory(data_set):
+    in_file = open("../data/%s/usercategory.txt" % data_set)
     #in_file = open("../data/flickr/usercategory.txt")
     usercategory = []
     while True:
@@ -49,8 +49,8 @@ def get_usercategory():
 
 # read edge file to get all edges
 # use these edges to find local information region
-def get_edges():
-    in_file = open("../data/blogcatalog/edges.txt")
+def get_edges(data_set):
+    in_file = open("../data/%s/edges.txt" % data_set)
     #in_file = open("../data/flickr/edges.txt")
     edges = []
     while True:
@@ -68,8 +68,8 @@ def get_edges():
 
 # get ranked nodes: order by edge number a node has
 # use this order to pick start node, so node with higher degree tends to be picked earlier
-def get_ranked_nodes(): # get nodes ranked by edge num
-    infile = open("../data/blogcatalog/edges.txt")
+def get_ranked_nodes(data_set): # get nodes ranked by edge num
+    infile = open("../data/%s/edges.txt" % data_set)
     #infile = open("../data/flickr/edges.txt")
     node_dict = {}
 
@@ -94,27 +94,26 @@ def get_ranked_nodes(): # get nodes ranked by edge num
 
 # get similar nodes pair list by finding local information regions
 # nodes in the same local information and has same category are put in the S list
-def get_s_with_local_region(edges, ranked_nodes, usercategory):
+def get_s_with_local_region(edges, ranked_nodes, usercategory, region_num, region_size):
     visited = [0] * NUM_NODES
     S = []
-    ranked_nodes = get_ranked_nodes()
 
     pos = 0
-    for i in range(LOCAL_MAX): # find LOCAL_MAX local regions
+    for i in range(region_num): # find region_num local regions
 
         # first: get a start node
         start_pos = pick_start_node(visited, ranked_nodes, pos)
         start = ranked_nodes[start_pos]
 
-        # next: pick NODE_MAX nodes by BFS, which become a local region
+        # next: pick region_size nodes by BFS, which become a local region
         visited[start-1] = 1
-        pick_nodes = pick_region_nodes(start, edges, visited)
-        print "find a local region:"
-        print pick_nodes
+        pick_nodes = pick_region_nodes(start, edges, visited, region_size)
+        #print "find a local region:"
+        #print pick_nodes
 
         # get S for this local region
-        for i in range(NODE_MAX):
-            for j in range(i+1, NODE_MAX):
+        for i in range(region_size):
+            for j in range(i+1, region_size):
                 if not is_dissimilar_pair(pick_nodes[i]-1, pick_nodes[j]-1, usercategory):
 
                     #because the lables start from 1 in pick nodes,
@@ -136,19 +135,19 @@ def pick_start_node(visited, ranked_nodes, pos):
 
 
 # after picking a start node, get a local information region using bfs
-def pick_region_nodes(start, edges, visited):
+def pick_region_nodes(start, edges, visited, region_size):
     nodes = deque()
     nodes.append(start)
     pick_num = 1
     pick_nodes = [start]
 
-    while pick_num < NODE_MAX:
+    while pick_num < region_size:
         current = nodes.popleft()
         neighbor_nodes = [user2 for (user1, user2) in edges if\
                             user1 == current and\
                             visited[user2-1] == 0]
 
-        left_num = NODE_MAX - pick_num
+        left_num = region_size - pick_num
         if len(neighbor_nodes) > left_num:
             samples = random.sample(set(neighbor_nodes), left_num)
             for sample in samples:
@@ -176,9 +175,9 @@ def is_dissimilar_pair(user1, user2, usercategory):
     return True
 
 # sample suitable nodes to get dissimilar nodes pair list
-def get_d_with_sample(usercategory):
-    nodes = random.sample(range(NUM_NODES), LOCAL_MAX * NODE_MAX)
-    print nodes
+def get_d_with_sample(usercategory, region_num, region_size):
+    nodes = random.sample(range(NUM_NODES), region_num * region_size)
+    #print nodes
     D = []
 
     for i in range(len(nodes)):
@@ -200,7 +199,7 @@ def replace_list(li, before, after):
             li[index] = after
 
 # generate positive and negative constraints
-def generate_constraints(S, D):
+def generate_constraints(S, D, data_set):
 
     chunks = [-1] * NUM_NODES
     cid = 0 #begin from zero
@@ -235,7 +234,7 @@ def generate_constraints(S, D):
             neglinks[chunks[v]][chunks[u]] += 1
 
     #output chunks
-    out_file = open("../data/blogcatalog/chunks.txt", 'w')
+    out_file = open("../data/%s/chunks.txt" % data_set, 'w')
     for i in range(NUM_NODES):
         if chunks[i] == -1:
             out_file.write("%s\n" % chunks[i])
@@ -246,21 +245,25 @@ def generate_constraints(S, D):
     out_file.close()
 
     #output neglinks
-    out_file = open("../data/blogcatalog/neglinks.txt", "w")
+    out_file = open("../data/%s/neglinks.txt" % data_set, "w")
     for i in range(chunk_num):
         out_file.write("%s\n" %
                     " ".join([str(j) for j in neglinks[i]]))
     out_file.close()
 
+def generate_constraint(region_num, region_size, data_set, num_nodes):
+    global NUM_NODES
+    NUM_NODES = num_nodes
+    edges = get_edges(data_set)
+    ranked_nodes = get_ranked_nodes(data_set) #order nodes by edges number
+    usercategory = get_usercategory(data_set) #ground truth
+
+    S = get_s_with_local_region(edges, ranked_nodes, usercategory, region_num, region_size)
+    D = get_d_with_sample(usercategory, region_num, region_size)
+
+    generate_constraints(S, D, data_set)
 
 if __name__ == "__main__":
     print "rember to change file name and num macros"
 
-    edges = get_edges()
-    ranked_nodes = get_ranked_nodes() #order nodes by edges number
-    usercategory = get_usercategory() #ground truth
-
-    S = get_s_with_local_region(edges, ranked_nodes, usercategory)
-    D = get_d_with_sample(usercategory)
-
-    generate_constraints(S, D)
+    generate_constraint(10, 50, "blogcatalog-b", 5209)

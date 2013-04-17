@@ -14,16 +14,18 @@ TYPE_NONE = 3
 
 MAX_DISTANCE = 100 #need to change accordingly
 
-epsilon = 0.1
+epsilon = 3
 
 STEP_SIZE = 40
 
-NUM_NODES = 5118
+NUM_NODES = 5209
 
 #import numpy as np #use numpy to compute median distance
 from collections import deque
 import random
 import operator
+
+from compute_purity import get_max_pi
 
 # class Node definition
 class Node(object):
@@ -50,8 +52,8 @@ class Node(object):
 
 
 # read input file to get the distance matrix
-def compute_dm():
-    input_file = open("../data/blogcatalog/distance.txt")
+def compute_dm(data_set):
+    input_file = open("../data/%s/dca_distance.txt" % data_set)
     #input_file = open("../data/flickr/distance.txt")
     dm = []
 
@@ -314,13 +316,23 @@ def get_minimum_distance(distance):
 
     return minimum, maxmum
 
+def get_purity(data_set, usercategory, num_nodes):
+    global NUM_NODES
+    NUM_NODES = num_nodes
+    nodes = dshrink(data_set)
+    purity_sum = 0
+    for node in nodes:
+        if node.ntype != TYPE_NONE:
+            purity_sum += get_max_pi(node.children_list, usercategory)
+
+    return float(purity_sum) / NUM_NODES
 
 # the main procedure of the dshrink algorithm
-def dshrink():
+def dshrink(data_set):
     #first get dm, dm_original
     #dm_original is just of a copy a dm, but it is needed to compute delta qd
     #because dm may be updated during each iteration
-    dm_original = compute_dm()
+    dm_original = compute_dm(data_set)
     dm = []
     for i in dm_original:
         new_list = [j for j in i]
@@ -336,9 +348,9 @@ def dshrink():
     nodes = initial_nodes(dm)
     compute_anearest_neighbors(nodes, dm)
 
-    for node in nodes:
-        if node.ntype != TYPE_NONE:
-            print node
+    #for node in nodes:
+        #if node.ntype != TYPE_NONE:
+            #print node
 
     #compute dt and sit for later use
     dt, sit = compute_dt_sit(dm)
@@ -356,11 +368,11 @@ def dshrink():
                 continue
             delta_qd = compute_delta_qd(dm_original, dt, community, nodes, sit)
             if delta_qd < 0:
-                print "here combine community", community
+                #print "here combine community", community
                 decrease = True
                 combine_local_community(nodes, dm, community)
-            else:
-                print "combine failed because delta_qd < 0", community
+            #else:
+                #print "combine failed because delta_qd < 0", community
 
         #when there is no combine, stop
         if not decrease:
@@ -373,20 +385,26 @@ def dshrink():
 
         for node in nodes:
             if node.ntype != TYPE_NONE:
-                print node
+                #print node
                 #assure that each cluster has no duplicate node label
                 if len(set(node.children_list)) != len(node.children_list):
                     print "has duplicate entry!!!!", node
                     exit(0)
 
 
-    print "finally"
-    for node in nodes:
-        if node.ntype != TYPE_NONE:
-            print node
+    #print "finally"
+    #out_file = open("../data/blogcatalog-b/result/region_num/10_handled.txt", "w")
+    #for node in nodes:
+        #if node.ntype != TYPE_NONE:
+            #print node
+            #out_file.write("%s\n" %
+                           #", ".join([str(i) for i in node.children_list]))
+    #out_file.close()
+
+    return nodes
 
 if __name__ == "__main__":
     print "rember to change file name and num macros"
     print "also need to change max distance accordingly"
 
-    dshrink()
+    #dshrink()

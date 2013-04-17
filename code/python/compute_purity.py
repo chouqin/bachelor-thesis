@@ -16,8 +16,8 @@ NUM_NODES = 5118
 
 
 # read usercategory file and get user * category matrix
-def get_user_category():
-    in_file = open("../data/blogcatalog/usercategory.txt")
+def get_user_category(data_set):
+    in_file = open("../data/%s/usercategory.txt" % data_set)
     #in_file = open("../data/flickr/usercategory.txt")
     usercategory = []
     while True:
@@ -33,9 +33,9 @@ def get_user_category():
 
 
 # read result file and get a list of clusters represented by a list of user id
-def get_clusters():
+def get_clusters(file_name):
     #in_file = open("../data/flickr/result/result001_handled.txt")
-    in_file = open("../data/blogcatalog/result/node_max/60_handled.txt")
+    in_file = open("../data/blogcatalog-b/result/region_num/%s" % file_name)
     clusters = []
     while True:
         line = in_file.readline()
@@ -61,7 +61,8 @@ def get_max_pi(cluster, usercategory):
 
 
 # compute the purity of dshrink clustering
-def get_purity(clusters, usercategory):
+def get_purity(file_name, usercategory):
+    clusters = get_clusters(file_name)
     purity_sum = 0
 
     for cluster in clusters:
@@ -74,6 +75,41 @@ if __name__ == '__main__':
     print "rember to change file name and num macros"
 
     usercategory = get_user_category()
-    clusters = get_clusters()
 
-    print get_purity(clusters, usercategory)
+    #file_names = [
+        #(20, '20_handled.txt'),
+        #(25, '25_handled.txt'),
+        #(30, '30_handled.txt'),
+        #(35, '35_handled.txt'),
+        #(40, '40_handled.txt'),
+        #(45, '45_handled.txt'),
+        #(50, '50_handled.txt'),
+        #(55, '55_handled.txt'),
+        #(60, '60_handled.txt'),
+    #]
+
+    file_names = [
+        #(4, '4_handled.txt'),
+        #(5, '5_handled.txt'),
+        #(6, '6_handled.txt'),
+        #(7, '7_handled.txt'),
+        #(8, '8_handled.txt'),
+        #(9, '9_handled.txt'),
+        (10, '10_handled.txt'),
+        #(11, '11_handled.txt'),
+        #(12, '12_handled.txt'),
+    ]
+
+    result = []
+    for node_max, name in file_names:
+        result.append((node_max, get_purity(name, usercategory)))
+
+    #output result
+    #out_file = open("../data/blogcatalog/result/node_max/summary.txt", "w")
+    out_file = open("../data/blogcatalog-b/result/region_num/summary_tmp.txt", "w")
+    for node_max, purity in result:
+        print node_max, purity
+        out_file.write("%d %f\n" % (node_max, purity))
+    out_file.close()
+
+    #print get_purity(clusters, usercategory)

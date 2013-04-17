@@ -18,7 +18,7 @@ NUM_CLUSTERS = 6 # num of cluster used by k-means, this num may be different wit
 
 # read usercategory file and get user * category matrix
 def get_user_category():
-    in_file = open("../data/blogcatalog/usercategory.txt")
+    in_file = open("../data/blogcatalog-b/usercategory.txt")
     #in_file = open("../data/flickr/usercategory.txt")
     usercategory = []
     while True:
@@ -36,7 +36,7 @@ def get_user_category():
 # read result file and get a list of clusters represented by a list of user id
 def get_clusters():
     #in_file = open("../data/flickr/result/sresult003.txt")
-    in_file = open("../data/blogcatalog/result/sresult006.txt")
+    in_file = open("../data/blogcatalog-b/result/kresult001.txt")
     clusters = []
     for i in range(NUM_CLUSTERS):
         clusters.append([])
