@@ -133,29 +133,46 @@ i,j作为虚数单位时，也应该使用``直立体''，为了明显，还加�
 
 \XeTeX 可以很方便地插入PDF、EPS、PNG、JPG格式的图片。
 
-插入PNG/JPG的例子如\ref{fig:SRR}所示。
-这两个水平并列放置的图共享一个``图标题''(table caption)，没有各自的小标题。
+%插入PNG/JPG的例子如\ref{fig:SRR}所示。
+%这两个水平并列放置的图共享一个``图标题''(table caption)，没有各自的小标题。
 
-\begin{figure}[!htp]
+%\begin{figure}[!htp]
+  %\centering
+  %\includegraphics[width=0.3\textwidth]{chap2/testpng}
+  %\hspace{1cm}
+  %\includegraphics[width=0.3\textwidth]{chap2/testjpg}
+  %\bicaption[fig:SRR]{这里将出现在插图索引中}{中文题图}{Fig}{Test Figure}
+%\end{figure}
+
+这里还有插入eps图像和pdf图像的例子，如图\ref{fig:pdfeps2}。这里将EPS和PDF图片作为子图插入，每个子图有自己的小标题。并列子图的功能是使用subfigure宏包提供的。注意图\ref{fig:pdfeps}和图\ref{fig:pdfeps2}分别对应了两个字幕和一个字幕的情况，
+可以根据需要进行选取。
+
+\begin{figure}
   \centering
-  \includegraphics[width=0.3\textwidth]{chap2/testpng}
-  \hspace{1cm}
-  \includegraphics[width=0.3\textwidth]{chap2/testjpg}
-  \bicaption[fig:SRR]{这里将出现在插图索引中}{中文题图}{Fig}{English caption}
+  \subfigure[Blogcatalog]{
+    \includegraphics[width=0.3\textwidth]{chap2/testeps}
+    \label{fig:epspdf:a} %% label for first subfigure
+    }
+  \hspace{1in}
+  \subfigure[Blogcatalog-b]{
+    \includegraphics[angle=-90,origin=br,width=0.3\textwidth]{chap2/testpdf.pdf}
+    \label{fig:epspdf:b} %% label for second subfigure
+    }
+  \bicaption[fig:pdfeps]{插入eps图像和pdf图像}{插入eps和pdf的例子}{Fig}{An EPS and PDF demo}
 \end{figure}
-
-这里还有插入eps图像和pdf图像的例子，如图\ref{fig:pdfeps}。这里将EPS和PDF图片作为子图插入，每个子图有自己的小标题。并列子图的功能是使用subfigure宏包提供的。
 
 \begin{figure}
   \centering
   \subfigure[EPS Figure]{
-    \label{fig:epspdf:a} %% label for first subfigure
+    \label{fig:epspdf2:a} %% label for first subfigure
     \includegraphics[width=0.3\textwidth]{chap2/testeps}}
   \hspace{1in}
   \subfigure[PDF Figure]{
-    \label{fig:epspdf:b} %% label for second subfigure
+    \label{fig:epspdf2:b} %% label for second subfigure
     \includegraphics[angle=-90,origin=br,width=0.3\textwidth]{chap2/testpdf.pdf}}
-  \bicaption[fig:pdfeps]{插入eps图像和pdf图像}{插入eps和pdf的例子}{Fig}{An EPS and PDF demo}
+  \caption{插入eps图像和pdf图像}
+  \label{fig:pdfeps2}
+  %\bicaption[fig:pdfeps1]{插入eps图像和pdf图像}{插入eps和pdf的例子}{Fig}{An EPS and PDF demo}
 \end{figure}
 
 更多关于 \LaTeX 插图的例子可以参考\href{http://www.cs.duke.edu/junhu/Graphics3.pdf}{《\LaTeX 插图指南》}。
