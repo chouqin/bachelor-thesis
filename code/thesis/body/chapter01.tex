@@ -281,4 +281,15 @@ make && make view
 
 我大力推荐大家使用\href{http://git-scm.com}{git}\cndash{}一个优秀的代码控制系统\cndash{}管理整个学位论文的协作过程。使用git合并(merge)最新版本的模板，是一件非常安全且无痛的工作。
 
+\section{文献综述}
+\label{sec:reference-overview}
 
+社区发现这个研究方向在各个领域有着广泛的研究，有很多聚类算法都可以用来解决特定情况下的社区发现问题。
+基于模块性准则的聚类算法(Modularity-based methods)是一种机器学习算法，它以模块性作为评价聚类好坏的标准，通过学习得到一个最优的模块性的聚类\upcite{newman2004finding,aggarwal2011towards}。
+基于密度的聚类方法(Density-based methods)基于节点的疏密程度对节点进行聚类\upcite{bortner2010progressive,ester1996density,xu2007scan}。
+SHRINK结合了上述两种方法，通过迭代式地基于结构相似度将节点聚合成一个超级节点，同时用模块性准则作为迭代终止的判别方法\upcite{Huang:2010:SSC:1871437.1871469}。
+随着不完整信息网络的出现，解决聚类问题变得更加复杂。利用已知的部分网络来对整个网络进行推测一定程度上解决了这个问题\upcite{kim2011network}。
+而更加一般的办法是利用已知的信息学习一个距离度量(Distance metric learning)，
+使用这个度量可以求得所有节点对之间的距离\upcite{xing2002distance,hoi2006learning,bar2006learning}。
+利用节点的属性信息，通过机器学习得到所有节点对之间的距离[4]。
+求出这个距离之后，就可以基于距离进行社区挖掘\upcite{Lin:2012:CDI:2187836.2187883}。
