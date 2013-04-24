@@ -133,49 +133,6 @@ i,j作为虚数单位时，也应该使用``直立体''，为了明显，还加�
 
 \XeTeX 可以很方便地插入PDF、EPS、PNG、JPG格式的图片。
 
-%插入PNG/JPG的例子如\ref{fig:SRR}所示。
-%这两个水平并列放置的图共享一个``图标题''(table caption)，没有各自的小标题。
-
-%\begin{figure}[!htp]
-  %\centering
-  %\includegraphics[width=0.3\textwidth]{chap2/testpng}
-  %\hspace{1cm}
-  %\includegraphics[width=0.3\textwidth]{chap2/testjpg}
-  %\bicaption[fig:SRR]{这里将出现在插图索引中}{中文题图}{Fig}{Test Figure}
-%\end{figure}
-
-这里还有插入eps图像和pdf图像的例子，如图\ref{fig:pdfeps2}。这里将EPS和PDF图片作为子图插入，每个子图有自己的小标题。并列子图的功能是使用subfigure宏包提供的。注意图\ref{fig:pdfeps}和图\ref{fig:pdfeps2}分别对应了两个字幕和一个字幕的情况，
-可以根据需要进行选取。
-
-\begin{figure}
-  \centering
-  \subfigure[Blogcatalog]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
-    \label{fig:epspdf:a} %% label for first subfigure
-    }
-  \subfigure[Blogcatalog-b]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
-    \label{fig:epspdf:b} %% label for second subfigure
-    }
-  \bicaption[fig:pdfeps]{插入eps图像和pdf图像}{插入eps和pdf的例子}{Fig}{An EPS and PDF demo}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \subfigure[EPS Figure]{
-    \label{fig:epspdf2:a} %% label for first subfigure
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}}
-  \hspace{1in}
-  \subfigure[PDF Figure]{
-    \label{fig:epspdf2:b} %% label for second subfigure
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}}
-  \caption{插入eps图像和pdf图像}
-  \label{fig:pdfeps2}
-  %\bicaption[fig:pdfeps1]{插入eps图像和pdf图像}{插入eps和pdf的例子}{Fig}{An EPS and PDF demo}
-\end{figure}
-
-更多关于 \LaTeX 插图的例子可以参考\href{http://www.cs.duke.edu/junhu/Graphics3.pdf}{《\LaTeX 插图指南》}。
-
 \subsection{长标题的换行}
 \label{sec:longcaption}
 
@@ -199,6 +156,61 @@ i,j作为虚数单位时，也应该使用``直立体''，为了明显，还加�
     \end{minipage}     
   \end{figure}
 
+
+\section{实验结果}
+\label{sec:results}
+
+对于数据集Blogcatalog-a和Blogcatalog-b，
+分别观察在不同的局部信息网络大小（一个局部信息网络中的节点个数）
+和不同的局部信息网络的个数情况下的实验结果。
+由于算法具有一定的随机性，对于每一种不同的情况,
+重复实验5次，取平均值作为实验结果。
+
+\subsection{不同的局部信息网络的大小}
+\label{sec:results_node_max}
+
+在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:node_max}。
+此时选取的信息网络的个数为10。从实验结果可以看出，DSHRINK总是能比kmeans有更好的纯度，
+同时总体的趋势是随着局部信息网络大小的增加，纯度变高。
+
+\begin{figure}
+  \centering
+  \subfigure[Blogcatalog-a]{
+    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
+    \label{fig:node_max:a} %% label for first subfigure
+    }
+  \subfigure[Blogcatalog-b]{
+    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_node_max}
+    \label{fig:node_max:b} %% label for second subfigure
+    }
+    \bicaption[fig:node_max]{不同局部信息网络大小下的纯度}{不同局部信息网络大小下的纯度(信息网络个数为10)}{Fig}{Purity under different local region information size}
+\end{figure}
+
+\subsection{不同的局部信息网络个数}
+\label{sec:results_region_num}
+
+在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:region_num}。
+此时选取的信息网络的大小为50。从实验结果可以看出，DSHRINK总是能比kmeans有更好的纯度，
+同时总体的趋势是随着局部信息网络大小的增加，纯度变高。
+
+\begin{figure}
+  \centering
+  \subfigure[Blogcatalog-a]{
+    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_region_num}
+    \label{fig:region_num:a} %% label for first subfigure
+    }
+  \subfigure[Blogcatalog-b]{
+    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_region_num}
+    \label{fig:region_num:b} %% label for second subfigure
+    }
+    \bicaption[fig:region_num]{不同局部信息网络个数下的纯度}{不同局部信息网络个数下的纯度(信息网络大小为50)}{Fig}{Purity under different local region information number}
+\end{figure}
+
+\subsection{实验结果分析}
+
+DSHRINK相对于kmeans有更高的纯度是因为kmeans只是单纯地根据节点之间的欧式距离进行聚类，
+而DSHRINK根据已知的信息在欧式距离的基础上进行了一定的调整，能够达到更好的聚类效果。
+而且，知道的信息越多，纯度越高。
   
 \section{表格的例子}
 \label{sec:tab}
