@@ -15,6 +15,19 @@
 
 
 % \usepackage[sectionbib]{chapterbib}%每章都用参考文献
+ 
+
+%%%使用算法
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{graphics}
+\usepackage{epsfig}
+\renewcommand{\algorithmicrequire}{\textbf{输入:}}
+\renewcommand{\algorithmicensure}{\textbf{输出:}}
+\renewcommand{\algorithmcfname}{算法}
+\floatname{algorithm}{算法}
+%%%end of 使用算法
 
 \newboolean{DOIT}
 \setboolean{DOIT}{false}%编译某些只想自己看的内容，编译true，否则false
@@ -52,26 +65,26 @@
 
 % 中文封面内容(关注内容而不是形式)
 \title{社交网络中部分信息缺失条件下的社区发现}
-\author{李\quad{}四}
-\advisor{张三教授}
+\author{李奇平}
+\advisor{王灿，陈英}
 \degree{学士}
-\defenddate{2010年1月16日}
+\defenddate{2013年6月1日}
 \school{上海交通大学}
-\institute{物理系}
-\studentnumber{0010900990}
+\institute{计算机科学与技术}
+\studentnumber{5090209296}
 \major{专业名称}
 
 % 英文封面内容(关注内容而不是表现形式)
 \englishtitle{Community Detection in Incomplete Social Networks}
-\englishauthor{\textsc{Si Li}}
-\englishadvisor{Prof. \textsc{San Zhang}}
+\englishauthor{\textsc{Qiping Li}}
+\englishadvisor{Prof. \textsc{Can Wang, Ying Chen}}
 \englishschool{Shanghai Jiao Tong University}
-\englishinstitute{\textsc{Depart of XXX, School of XXX} \\
+\englishinstitute{\textsc{Depart of Computer Science and Technology} \\
   \textsc{Shanghai Jiao Tong University} \\
   \textsc{Shanghai, P.R.China}}
 \englishdegree{Bachelor}
-\englishmajor{Physics}
-\englishdate{Jan. 16th, 2010}
+\englishmajor{Computer Science}
+\englishdate{June. 1st, 2013}
 
 % 封面
 \maketitle
@@ -111,10 +124,14 @@
 
 
 %% 各章正文内容
+\include{body/intro}
 \include{body/chapter01}
 \include{body/chapter02}
 \include{body/chapter03}
 \include{body/dca}
+\include{body/dshrink}
+\include{body/implemetation}
+\include{body/summary}
 \include{body/ack} %% 全文总结
 \include{body/conclusion} %% 全文总结
 

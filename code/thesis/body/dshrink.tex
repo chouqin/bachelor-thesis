@@ -1,0 +1,207 @@
+\chapter{基于距离的聚类算法--DSHRINK}
+\label{chap:dshrink}
+
+在第\ref{chap:dca}章中，我们获得了一个距离学习度量，
+利用它，可以计算任意两个节点$u, v$之间的距离$d(u, v)$。
+本章介绍一种基于距离进行层次化聚类方法DSHRINK，
+它通过不断地把一些节点组合到一起形成一个超级节点，
+直到碰到终止条件停止聚类。
+
+\section{基于距离的模块性准测}
+
+DSHRINK算法总是试图把相邻的节点聚到一起组成一个超级节点，
+然后超级节点又会跟其他的节点进行聚类，如果没有终止条件，
+那最后所有的节点会被聚到一类。模块性准测是一种评价聚类质量的方法，
+如果把一些节点聚到一起，会造成聚类质量不好，就停止聚类。
+
+\begin{defn}{基于距离的模块性}
+    \label{defn:density-based-modularity}
+
+    给定不完全信息网络$G = (V, E, A, M)$和在它上面的聚类
+    $C = \{C_1, C_2, ..., C_k\}$, 基于距离的模块性$Q_d$为：
+
+    \begin{equation}
+    Q_d = \sum_{i=1}^k [ \frac{D_i^I}{D^T} - (\frac{D_i^C}{D^T})^2]
+    \end{equation}
+
+    其中$k$是聚类的数目，
+    $D_i^I = \sum_{u,v \in C_i} d(u,v)$是聚类$C_i$中任意两节点的距离和，
+    $D_i^C = \sum_{u \in C_i, v \in V} d(u,v)$是聚类$C_i$中任意一个节点和其他节点的距离和，
+    $D^T = \sum_{u,v \in V} d(u,v)$是任意两节点的距离和。
+
+\end{defn}
+
+显然，模块性的取值范围是$[-1,0]$，如果$Q_d = 0$，那么要么所有节点都在同一个聚类，
+要么所有节点都在不同的聚类。$Q_d$越小，聚类的质量越好。
+
+如果我们把任意的两个聚类$C_s$和$C_t$合并成了一个聚类，
+那么模块性的增量$\Delta Q_d$为：
+
+\begin{equation}
+\label{equa:delta-qd}
+    \Delta Q_d = Q_d^{C_s \bigcup C_t} - Q_d^{C_s} - Q_d^{C_t} = \frac{2D_{st}^U}{D^T} - \frac{2D_s^CD_t^C}{(D^T)^2}
+\end{equation}
+
+其中$D_{st}^U = \sum_{u \in C_s, v \in C_t} d(u,v)$是聚类$C_s$中任意节点与聚类$C_t$中任意节点的距离和。
+
+根据等式\ref{equa:delta-qd}, 当把$j$个聚类$C_1, C_2, ..., C_j$合并成一个聚类时，
+模块性增量$\Delta Q_d$为：
+
+\begin{equation}
+\label{equa:delta-qd2}
+\Delta Q_d = \frac{\sum_{s,t \in {1,...,j}, s \neq t }2D_{st}^U}{D^T} - \frac{\sum_{s,t \in {1,...,j}, s \neq t }2D_s^CD_t^C}{(D^T)^2}
+\end{equation}
+
+\section{DSHRINK聚类算法}
+
+在详细讲述DSHRINK算法之前，先给出一组定义。
+
+\begin{defn}{最近邻居}
+    \label{defn:nearest-neighbor}
+
+    给定一个不完全信息网络$G = (V, E, A, M)$,
+    任意节点$u$的最近邻居集是：
+
+    \begin{equation}
+        NN(v) = \{y | y = \operatorname*{arg\,min}_x d(u, x), x \in V \wedge x \neq v\}
+    \end{equation}
+
+\end{defn}
+
+\begin{defn}{互近邻}
+    \label{defn:mnn}
+
+    给定一个不完全信息网络$G = (V, E, A, M)$,
+    节点$u, v$被称为互近邻，标记为：
+    $ u \xleftrightarrow{\gamma} v, iff v \in NN(u) \wedge u \in NN(v) \wedge d(u, v) = \gamma$。
+
+\end{defn}
+
+\begin{defn}{当地社区}
+
+    给定一个不完全信息网络$G = (V, E, A, M)$,
+    我们把它的子图$C(v) = (V^\prime, E^\prime, A^\prime, M, \gamma)$叫作一个当地社区如果$
+    (1) v \in V^\prime;
+    (2) \forall u \in V^\prime, \exists v \in V^\prime \wedge u \xleftrightarrow{\gamma} v;
+    (3) \{u | u \in V^\prime \wedge u \xleftrightarrow{\gamma} v \wedge v \notin V^\prime \} = \emptyset
+    $。
+    
+\end{defn}
+
+DSHRINK就是通过不断地把当地社区中的节点组合成一个超级节点，直到终止条件成立来完成整个聚类的过程。
+由于当地社区的社区十分严格，要求其中所有的节点都互为最近邻，每一轮迭代组合的节点太少，
+会导致整个聚类算法运行时间很长。因此，接下来给出一种更加松弛的当地社区定义。
+
+\begin{defn}{$\epsilon$近似互近邻}
+    给定一个不完全信息网络$G = (V, E, A, M)$,
+    节点$u, v$被称为$\epsilon$近似互近邻，标记为：
+    $ u \xleftrightarrow[\epsilon]{} v, iff 
+    (v \in NN(u) \wedge |d(u, v) - d(v, x)| \leq \epsilon) \vee
+    (u \in NN(v) \wedge |d(u, v) - d(u, y)| \leq \epsilon)
+    $。其中$
+    x \in NN(v), y \in NN(u), \epsilon \in R^+
+    $
+\end{defn}
+
+显然，近似互近邻是对于互近邻的一种扩展，如果两个节点是互近邻，
+那么它们一定是近似互近邻，反之则不成立。
+
+\begin{defn}{$\epsilon$近似当地社区}
+    \label{defn:local-community}
+
+    给定一个不完全信息网络$G = (V, E, A, M)$,
+    我们把它的子图$C(v) = (V^\prime, E^\prime, A^\prime, M, \epsilon)$叫作一个$\epsilon$近似当地社区如果$
+    (1) v \in V^\prime;
+    (2) \forall u \in V^\prime, \exists v \in V^\prime \wedge u \xleftrightarrow[\epsilon]{} v;
+    (3) \{u | u \in V^\prime \wedge u \xleftrightarrow[\epsilon]{} v \wedge v \notin V^\prime \} = \emptyset
+    (4) \text{如果} f(r) = \{r | r = d(s, t), s \xleftrightarrow[\epsilon]{} t \wedge s \in V^\prime \wedge t \in V^\prime }, |max(f(r)) = min(f(r))| \leq \epsilon
+    $
+    (5) 如果(3)和(4)不能同时被满足，要先保证(4)被满足。
+
+    要满足条件(3)需要往当地社区中添加更多的节点，但是添加节点之后就会使得任意两个节点距离的最大值变大，
+    任意两个节点距离的最小值变小，可能会导致条件(4)不满足，根据条件(5)，此时因该停止添加。
+
+\end{defn}
+
+采用近似当地社区取代当地社区用于组合生成超级节点能够极大地加快整个聚类的过程。
+原来两个不是互近邻的节点有可能就是$\epsilon$近似互近邻，因此，
+每一次能够把更多的节点聚到一起，使每一次迭代的步调能够更大。
+而且，通过我们实验观察得知，最终的聚类效果几乎与$\epsilon$的取值无关。
+因此，选定一个合适的$\epsilon$，就能极大地减少整个算法所需要的时间，
+而且不会影响最终结果的质量。
+
+DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
+整个算法分为两个部分，前面的初始化部分和后面聚类部分。
+在初始化时，除了初始化每一个节点成一个单独的聚类，还有一个重要的步骤就是计算$S_i^T$和$D^T$。
+对于任何一个节点$v_i$，所有节点和它的距离和是$s_i^T$，而任意两个节点对的距离和是$D^T$。
+在等式\ref{equa:delta-qd2}计算$\Delta Q_d$时需要$D^T$，
+而$D_s^C = \sum_{v_i \in C_s, v_j \in V} d(v_i, v_j) = \sum_{v_i \in C_s} S_i^T$，
+所以提前计算出$S_i^T$和$D_i^T$能够节省一定的计算量。
+
+算法的第二部分就是不断地迭代，每次迭代把当地社区组合成一个超级节点，
+直到组合所有找到的当地社区都会导致$\Delta Q_d \geq 0$，循环终止，
+此时聚类结束。每一个超级节点就是一个社区。关于算法的实现细节，有几点需要补充说明：
+
+\begin{itemize}
+    \item 在每次循环时，需要找到一个当地社区列表，我们挑选C中的任何一个超级节点作为起始节点，
+    然后使用BFS添加节点到当前的社区。此时需要注意不要违反定义\ref{defn:local-community}中的条件(4)。
+    当遍历到一个节点时，可以把它的$\epsilon$近似互近邻按照和当前节点的距离进行排序，
+    距离更近的节点更先被访问。当然，也可以把这个排序的步骤放在算法\ref{algo:dshrink}的第22行完成。
+
+    \item 在每次把一个当地社区组合成一个超级节点之后，需要重新计算这个超级节点和其他节点之间的距离，
+    如果这个距离设置得太小，会造成一个滚雪球效应，拥有节点个数多的聚类与其他节点的距离将会更近，
+    这样会更容易和其他的节点聚为一类，从而有导致新生成的聚类拥有更多的节点。因此，
+    在计算超级节点与其他节点距离的时候，不能简单地选取聚类中所有节点与超级节点的最小值作为距离，
+    需要根据数据的特点确定使用最小值还是平均值，甚至是最大值。
+\end{itemize}
+
+
+\begin{algorithm}[htb]
+    \caption{ DSHRINK算法.}
+    \label{algo:dshrink}
+    \begin{algorithmic}[1]
+        \Require
+        不完全信息网络$G = (V, E, A, M)$
+        \Ensure
+        聚类的结合$C = \{C_1, C_2, ..., C_k\}$
+        \State 根据距离度量计算节点之间的距离;
+        \State 初始化：把所有的节点作为一个单独的聚类，同时计算每一个节点的$\epsilon$近似互近邻,
+        $S^T = 0, D^T = 0, C = \{\{v\} | v \in V \}$;
+
+        \For{each $v_i \in V$}
+            \For {each $v_j \in V$}
+                \State $S_i^T += d(v_i, v_j)$;
+                \State $D^T += d(v_i, v_j)$;
+            \EndFor
+        \EndFor
+
+        \While {true}
+            \State 根据定义\ref{defn:local-community}找到一个当地社区列表$community-list$;
+            \State $Q_d.decrease = false$;
+
+            \For {each $community \in community-list$}
+                \State 根据等式\ref{equa:delta-qd2}计算$\Delta Q_d$;
+                \If {$\Delta Q_d < 0$}
+                    \State $Q_d.decrease = true$;
+                    \State 把$community$中的聚类组合成一个新的聚类，把$community$中的聚类从$C$中移除，
+                    并把这个新添加的聚类加入$C$中;
+                \EndIf
+            \EndFor
+
+            \If {$!(Q_d.decrease)$}
+                \State $break$;
+            \EndIf
+
+            \State 重新计算$C$中的超级节点之间的距离，并计算它们的$\epsilon$近似互近邻。
+        \EndWhile
+
+        \Return C;
+
+    \end{algorithmic}
+\end{algorithm}
+
+\section{对于DSHRINK算法的分析}
+
+从当地社区或$\epsilon$近似当地社区的定义可知，
+节点的访问顺序对于最终寻找的当地社区列表是没有什么影响的。
+而且，从整个过程来看，距离更近的节点会更早地被聚在一起，形成一个超级节点。
