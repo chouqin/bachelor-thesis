@@ -157,13 +157,13 @@ DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
 
 
 \begin{algorithm}[htb]
-    \caption{ DSHRINK算法.}
+    \caption{DSHRINK算法}
     \label{algo:dshrink}
     \begin{algorithmic}[1]
         \Require
         不完全信息网络$G = (V, E, A, M)$
         \Ensure
-        聚类的结合$C = \{C_1, C_2, ..., C_k\}$
+        聚类的集合$C = \{C_1, C_2, ..., C_k\}$
         \State 根据距离度量计算节点之间的距离;
         \State 初始化：把所有的节点作为一个单独的聚类，同时计算每一个节点的$\epsilon$近似互近邻,
         $S^T = 0, D^T = 0, C = \{\{v\} | v \in V \}$;
