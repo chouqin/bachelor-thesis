@@ -1,9 +1,7 @@
 %==================================================
-%% sjtuthesis.cls for SJTU Master Thesis
+%% sjtuthesis.cls for SJTU Bachelor Thesis
 %% based on CASthesis.cls -- http://www.ctex.org/PackageCASthesis
-%% Hosted on https://github.com/weijianwen/sjtu-thesis-template-latex
-%% SJTU LaTeX Forum https://bbs.sjtu.edu.cn/bbsdoc,board,TeX_LaTeX.html
-%% Encoding: UTF-8
+%% and https://github.com/weijianwen/sjtu-thesis-template-latex
 %% ==================================================
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
@@ -347,21 +345,21 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubanner}}}  % 奇数页左页眉
+\fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubannerred}}}  % 奇数页左页眉
 \fancyhead[R]{\small {\it \sjtu@value@titlemark}}                   % 奇数页右页眉
 \fancyfoot[C]{\small ~第~{\bf\thepage}~页~共~{\bf\pageref{LastPage}}~页~}      % 页脚
 
 
 \fancypagestyle{plain}{% 设置开章页页眉页脚风格(只有页码作为页脚)
   \fancyhf{}%
-  \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubanner}}}  % 奇数页左页眉
+  \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubannerred}}}  % 奇数页左页眉
   \fancyhead[R]{\small {\it \sjtu@value@titlemark}}                   % 奇数页右页眉
   \fancyfoot[C]{\small ~第~{\bf\thepage}~页~共~{\bf\pageref{LastPage}}~页~}      % 页脚
 }
 
 \fancypagestyle{frontmatter}{ % "frontmatter" page style
   \fancyhf{}%
-  \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubanner}}}  % 奇数页左页眉
+  \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubannerred}}}  % 奇数页左页眉
   \fancyhead[R]{\small {\it \sjtu@value@titlemark}}                   % 奇数页左页眉
   \fancyfoot[C]{--- {\bf\thepage} ---}      % 页脚
 }
