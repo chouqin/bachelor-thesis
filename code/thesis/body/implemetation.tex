@@ -102,22 +102,34 @@ $$
 \subsection{不同的局部信息网络的大小}
 \label{sec:results_node_max}
 
-在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:node_max}。
+在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:node_max:a}。
 此时选取的信息网络的个数为10。从实验结果可以看出，DSHRINK总是能比kmeans有更好的纯度，
 同时总体的趋势是随着局部信息网络大小的增加，纯度变高。
 
 \begin{figure}
-  \centering
-  \subfigure[Blogcatalog-a]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
-    \label{fig:node_max:a} %% label for first subfigure
-    }
-  \subfigure[Blogcatalog-b]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_node_max}
-    \label{fig:node_max:b} %% label for second subfigure
-    }
-    \bicaption[fig:node_max]{不同局部信息网络大小下的纯度}{不同局部信息网络大小下的纯度(信息网络个数为10)}{Fig}{Purity under different local region information size}
+    \includegraphics[width=1\textwidth]{chap2/blogcatalog_node_max}
+    \caption{Blogcatalog-a在不同局部信息网络下的纯度}
+    \label{fig:node_max:a}
 \end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{chap2/blogcatalog_b_node_max}
+    \caption{Blogcatalog-a在不同局部信息网络下的纯度}
+    \label{fig:node_max:a}
+\end{figure}
+
+%\begin{figure}
+  %\centering
+  %\subfigure[Blogcatalog-a]{
+    %\includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
+    %\label{fig:node_max:a} %% label for first subfigure
+    %}
+  %\subfigure[Blogcatalog-b]{
+    %\includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_node_max}
+    %\label{fig:node_max:b} %% label for second subfigure
+    %}
+    %\bicaption[fig:node_max]{不同局部信息网络大小下的纯度}{不同局部信息网络大小下的纯度(信息网络个数为10)}{Fig}{Purity under different local region information size}
+%\end{figure}
 
 \subsection{不同的局部信息网络个数}
 \label{sec:results_region_num}
