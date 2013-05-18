@@ -32,7 +32,7 @@
 \fi
 \textheight 21 true cm
 \textwidth 14.5 true cm
-\headheight 15pt
+\headheight 28pt
 \parskip 0.5ex plus 0.25ex minus 0.25ex
 %% 上边距
 \addtolength{\voffset}{-0.5cm}
@@ -127,35 +127,64 @@
 
 % listings 源代码显示宏包
 \RequirePackage{listings}
-\lstset{tabsize=4, %
-  frame=shadowbox, %把代码用带有阴影的框圈起来
-  commentstyle=\color{red!50!green!50!blue!50},%浅灰色的注释
-  rulesepcolor=\color{red!20!green!20!blue!20},%代码块边框为淡青色
-  keywordstyle=\color{blue!90}\bfseries, %代码关键字的颜色为蓝色，粗体
-  showstringspaces=false,%不显示代码字符串中间的空格标记
-  stringstyle=\ttfamily, % 代码字符串的特殊格式
-  keepspaces=true, %
-  breakindent=22pt, %
-  numbers=left,%左侧显示行号
-  stepnumber=1,%
-  numberstyle=\tiny, %行号字体用小号
-  basicstyle=\footnotesize, %
-  showspaces=false, %
-  flexiblecolumns=true, %
-  breaklines=true, %对过长的代码自动换行
-  breakautoindent=true,%
-  breakindent=4em, %
-  aboveskip=1em, %代码块边框
-  %% added by http://bbs.ctex.org/viewthread.php?tid=53451
-  fontadjust,
-  captionpos=t,
-  framextopmargin=2pt,framexbottommargin=2pt,abovecaptionskip=-3pt,belowcaptionskip=3pt,
-  xleftmargin=4em,xrightmargin=4em, % 设定listing左右的空白
-  texcl=true,
-  % 设定中文冲突，断行，列模式，数学环境输入，listing数字的样式
-  extendedchars=false,columns=flexible,mathescape=true
-  numbersep=-1em
+\RequirePackage{color}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=t,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  numbers=none,                    % where to put the line-numbers; possible values are (none, left, right)
+  %numbersep=5pt,                   % how far the line-numbers are from the code
+  %numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
 }
+%\lstset{tabsize=4, %
+  %frame=shadowbox, %把代码用带有阴影的框圈起来
+  %commentstyle=\color{red!50!green!50!blue!50},%浅灰色的注释
+  %rulesepcolor=\color{red!20!green!20!blue!20},%代码块边框为淡青色
+  %keywordstyle=\color{blue!90}\bfseries, %代码关键字的颜色为蓝色，粗体
+  %showstringspaces=false,%不显示代码字符串中间的空格标记
+  %stringstyle=\ttfamily, % 代码字符串的特殊格式
+  %keepspaces=true, %
+  %breakindent=22pt, %
+  %numbers=left,%左侧显示行号
+  %stepnumber=1,%
+  %numberstyle=\tiny, %行号字体用小号
+  %basicstyle=\footnotesize, %
+  %showspaces=false, %
+  %flexiblecolumns=true, %
+  %breaklines=true, %对过长的代码自动换行
+  %breakautoindent=true,%
+  %breakindent=4em, %
+  %aboveskip=1em, %代码块边框
+  %%% added by http://bbs.ctex.org/viewthread.php?tid=53451
+  %fontadjust,
+  %captionpos=t,
+  %framextopmargin=2pt,framexbottommargin=2pt,abovecaptionskip=-3pt,belowcaptionskip=3pt,
+  %xleftmargin=4em,xrightmargin=4em, % 设定listing左右的空白
+  %texcl=true,
+  %% 设定中文冲突，断行，列模式，数学环境输入，listing数字的样式
+  %extendedchars=false,columns=flexible,mathescape=true
+  %numbersep=-1em
+%}
 \renewcommand{\lstlistingname}{\sjtu@value@listingname} %% 重命名Listings标题头
 
 
@@ -343,6 +372,7 @@
   \fi
 }
 
+%\usepackage[a4paper,top=1.4in,head=1.5cm,headsep=0.5cm,bottom=1.28in,left=1.25in,right=1.25in]{geometry}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubannerred}}}  % 奇数页左页眉
@@ -357,11 +387,11 @@
   \fancyfoot[C]{\small ~第~{\bf\thepage}~页~共~{\bf\pageref{LastPage}}~页~}      % 页脚
 }
 
-\fancypagestyle{frontmatter}{ % "frontmatter" page style
-  \fancyhf{}%
-  \fancyhead[L]{\small {\it \includegraphics[width=0.22\textwidth]{sjtubannerred}}}  % 奇数页左页眉
-  \fancyhead[R]{\small {\it \sjtu@value@titlemark}}                   % 奇数页左页眉
-  \fancyfoot[C]{--- {\bf\thepage} ---}      % 页脚
+%\fancypagestyle{frontmatter}{ % "frontmatter" page style
+  %\fancyhf{}%
+  %\fancyhead[L]{\small {\it \includegraphics[width=4.3cm]{sjtubannerred}}}  % 奇数页左页眉
+  %\fancyhead[R]{\small {\it \sjtu@value@titlemark}}                   % 奇数页左页眉
+  %\fancyfoot[C]{--- {\bf\thepage} ---}      % 页脚
 }
 
 

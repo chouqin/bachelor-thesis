@@ -1,9 +1,10 @@
-\chapter{具体实现与实验步骤}
+\chapter{实验步骤与实验结果}
 \label{chap:implementation}
 
-在这个部分中，我们讲述详细的算法实现与实验步骤。
+在这个部分中，我们讲述算法实现的具体步骤以及实验结果。
 利用两组数据集，先生成满足条件的不完整信息网络，
-然后使用距离学习算法学习距离。
+然后使用距离学习算法学习距离。通过对比本文算法与kmeans算法的结果，
+验证本文算法的可用性。
 
 \section{实验环境}
 
@@ -16,6 +17,26 @@ CPU：Intel(R) Xeor(R) CPU E7420 @ 2.13GHz
 其中采用Python语言实现DSHRINK算法和局部信息网络的生成以及一些自动处理的脚本，
 Python的版本是Python2.7。使用Matlab完成DCA算法，PCA分析以及画出结果图,
 MATLAB版本为MATLAB version 7.8.0(R2009 a) 64位版 。
+
+\section{社区挖掘的流程}
+
+本文算法的整个流程如图\ref{fig:flow_chart}：
+
+\begin{itemize}
+    \item 首先选取合适的数据集用于实验；
+    \item 由于数据集所得到的信息网络是完整的，需要对信息网络进行处理，使之满足满足本文关于局部信息网络的定义，
+        也就是生成一个信息网络$G$，知道每一个节点的属性$X$，以及正语境限制$C$和负语境限制$D$；
+    \item 基于$X, C, D$使用DCA学习一个距离度量，并计算节点对之间的距离；
+    \item 基于距离用DSHRINK进行聚类。
+\end{itemize}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{flow_chart}
+    \caption{社区挖掘的流程}
+    \label{fig:flow_chart}
+\end{figure}
+
+在本章接下来的几节中，将对每个步骤做具体的介绍。
 
 \section{数据集的选取}
 \label{sec:imple:dataset}
@@ -71,6 +92,8 @@ Blogcatalog是一个博客社交网络, 它把人们与博客作者及博客作�
 生成负语境限制的方法相对简单，只需要随机选取regionNum乘regionSize个节点用于生成负语境限制。
 如果相似集$C_i$中的某个节点与相似集$C_j$不相似，那么$j \in D_i$且$i \in D_j$。
 
+具体实现的代码见\ref{code:constraint}。
+
 \section{结果好坏的评价标准}
 
 为了评价本文提出算法的有效性，通过对比本文提出的算法和kmeans在Blogcatalog和
@@ -83,16 +106,27 @@ Blogcatalog-b上结果的好坏来判定。基于Ground Truth中包含的类的�
 数学表达为：
 
 $$
-Purity = \frac{1}{n} \sum_{i=1}^k \operatorname{max}_j |Cl_i \bigcap l_j|
+Purity = \frac{1}{n} \sum_{i=1}^k \operatorname{max}_j |C_i \bigcap l_j|
 $$
 
 其中$\{C_1, ..., C_k\}$是所有的聚类，$\{l_1, ..., l_j\}$是所有的类。
 根据定义可以知道，纯度越高，聚类的效果越好。
 
+计算纯度的代码见\ref{code:purity}。
+
+
+\section{自动化实验}
+
+在完成本文实验的过程中，需要观察DSHRINK和Kmeans在两组数据集下的结果。
+对于每一个数据集，需要考察在不同的局部信息网络大小和不同的局部信息网络个数下的纯度，
+而且，对于每一种情况都需要重复实验5次去平均值作为实验结果。
+这需要进行大量的实验，因此需要一种自动化完成实验的方法。
+为此，我们实现了一个自动化的脚本，
+运行一次这个脚本能够完成整个实验的过程。
+自动化脚本的实现代码见\ref{code:auto}。
 
 \section{实验结果}
 \label{sec:results}
-
 对于数据集Blogcatalog-a和Blogcatalog-b，
 分别观察在不同的局部信息网络大小（一个局部信息网络中的节点个数）
 和不同的局部信息网络的个数情况下的实验结果。
@@ -102,53 +136,39 @@ $$
 \subsection{不同的局部信息网络的大小}
 \label{sec:results_node_max}
 
-在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:node_max:a}。
+在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:node_max:a}和图\ref{fig:node_max:b}。
 此时选取的信息网络的个数为10。从实验结果可以看出，DSHRINK总是能比kmeans有更好的纯度，
 同时总体的趋势是随着局部信息网络大小的增加，纯度变高。
 
 \begin{figure}
     \includegraphics[width=1\textwidth]{chap2/blogcatalog_node_max}
-    \caption{Blogcatalog-a在不同局部信息网络下的纯度}
+    \caption{Blogcatalog-a在不同局部信息网络大小下的纯度}
     \label{fig:node_max:a}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=1\textwidth]{chap2/blogcatalog_b_node_max}
-    \caption{Blogcatalog-a在不同局部信息网络下的纯度}
-    \label{fig:node_max:a}
+    \caption{Blogcatalog-b在不同局部信息网络大小下的纯度}
+    \label{fig:node_max:b}
 \end{figure}
-
-%\begin{figure}
-  %\centering
-  %\subfigure[Blogcatalog-a]{
-    %\includegraphics[width=0.45\textwidth]{chap2/blogcatalog_node_max}
-    %\label{fig:node_max:a} %% label for first subfigure
-    %}
-  %\subfigure[Blogcatalog-b]{
-    %\includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_node_max}
-    %\label{fig:node_max:b} %% label for second subfigure
-    %}
-    %\bicaption[fig:node_max]{不同局部信息网络大小下的纯度}{不同局部信息网络大小下的纯度(信息网络个数为10)}{Fig}{Purity under different local region information size}
-%\end{figure}
 
 \subsection{不同的局部信息网络个数}
 \label{sec:results_region_num}
 
-在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:region_num}。
+在Blogcatalog-a和Blogcatalog-b做社区挖掘所得到的纯度随局部信息网络大小不同的变化如图\ref{fig:region_num:a}和图\ref{fig:region_num:b}。
 此时选取的信息网络的大小为50。从实验结果可以看出，DSHRINK总是能比kmeans有更好的纯度，
 同时总体的趋势是随着局部信息网络大小的增加，纯度变高。
 
 \begin{figure}
-  \centering
-  \subfigure[Blogcatalog-a]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_region_num}
-    \label{fig:region_num:a} %% label for first subfigure
-    }
-  \subfigure[Blogcatalog-b]{
-    \includegraphics[width=0.45\textwidth]{chap2/blogcatalog_b_region_num}
-    \label{fig:region_num:b} %% label for second subfigure
-    }
-    \bicaption[fig:region_num]{不同局部信息网络个数下的纯度}{不同局部信息网络个数下的纯度(信息网络大小为50)}{Fig}{Purity under different local region information number}
+    \includegraphics[width=1\textwidth]{chap2/blogcatalog_region_num}
+    \caption{Blogcatalog-a在不同局部信息网络个数下的纯度}
+    \label{fig:region_num:a}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{chap2/blogcatalog_b_region_num}
+    \caption{Blogcatalog-b在不同局部信息网络个数下的纯度}
+    \label{fig:region_num:b}
 \end{figure}
 
 \subsection{实验结果分析}
@@ -157,3 +177,10 @@ DSHRINK相对于kmeans有更高的纯度是因为kmeans只是单纯地根据节�
 而DSHRINK根据已知的信息在欧式距离的基础上进行了一定的调整，能够达到更好的聚类效果。
 而且，知道的信息越多，纯度越高。
 
+
+\section{本章小节}
+
+在本章中，我们详细阐述了实现本文算法实现时的实验环境与实验的各个步骤。
+同时，通过对比本文算法和kmeans算法在不同的数据集和不同局部信息网络下的实验结果，
+得出本文算法能够比kmeans算法在信息缺失的信息网络中具有更好地效果，
+具有很好的实用性。

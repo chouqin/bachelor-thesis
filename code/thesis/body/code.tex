@@ -1,0 +1,843 @@
+\chapter{实验代码}
+\label{chap:code}
+
+\begin{lstlisting}[language={python}, caption={生成正语境限制和负语境限制}, label=code:constraint]
+import random
+from collections import deque
+import operator
+
+NUM_NODES = 5209
+NUM_CATEGORY = 6
+
+#number of local regions and local region size
+region_num = 9
+region_size = 50
+
+
+# read usercategory file and get user * category matrix
+# use usercategory information to get chunks information and neglinks information
+def get_usercategory(data_set):
+    in_file = open("../data/%s/usercategory.txt" % data_set)
+    usercategory = []
+    while True:
+        line = in_file.readline()
+
+        if not line:
+            break
+
+        items = line.strip().split(",")
+        usercategory.append(items)
+    in_file.close()
+    return usercategory
+
+
+# read edge file to get all edges
+# use these edges to find local information region
+def get_edges(data_set):
+    in_file = open("../data/%s/edges.txt" % data_set)
+    edges = []
+    while True:
+        line = in_file.readline()
+
+        if not line:
+            break
+
+        items = line.strip().split(",")
+        edges.append((int(items[0]), int(items[1])))
+    in_file.close()
+    return edges
+
+
+# get ranked nodes: order by edge number a node has
+# use this order to pick start node, so node with higher degree tends to be picked earlier
+def get_ranked_nodes(data_set): # get nodes ranked by edge num
+    infile = open("../data/%s/edges.txt" % data_set)
+    node_dict = {}
+
+    while True:
+        line = infile.readline()
+
+        if not line:
+            break
+
+        items = line.strip().split(",")
+        node1 = items[0]
+        if node1 in node_dict:
+            node_dict[node1] += 1
+        else:
+            node_dict[node1] = 1
+
+    sort_nodes = sorted(node_dict.iteritems(), key=operator.itemgetter(1), reverse=True)
+    nodes = [int(node[0]) for node in sort_nodes]
+    infile.close()
+    return nodes
+
+# get similar nodes pair list by finding local information regions
+# nodes in the same local information and has same category are put in the S list
+def get_s_with_local_region(edges, ranked_nodes, usercategory, region_num, region_size):
+    visited = [0] * NUM_NODES
+    S = []
+
+    pos = 0
+
+    # find region num local regions
+    for i in range(region_num): 
+        # first: get a start node
+        start_pos = pick_start_node(visited, ranked_nodes, pos)
+        start = ranked_nodes[start_pos]
+
+        # next: pick region size nodes by BFS, which become a local region
+        visited[start-1] = 1
+        pick_nodes = pick_region_nodes(start, edges, visited, region_size)
+
+        # get S for this local region
+        for i in range(region_size):
+            for j in range(i+1, region_size):
+                if not is_dissimilar_pair(pick_nodes[i]-1, pick_nodes[j]-1, usercategory):
+
+                    #because the lables start from 1 in pick nodes,
+                    #minus 1 to transfrom it to start from 0
+                    S.append((pick_nodes[i]-1, pick_nodes[j]-1))
+
+        pos = start_pos + 1
+
+    return S
+
+
+
+# pick nodes as start node successively in ranked nodes
+def pick_start_node(visited, ranked_nodes, pos):
+    for i in range(pos, NUM_NODES):
+        if visited[ranked_nodes[i]-1] == 0:
+            return i
+    raise NameError("can't find start node")
+
+
+# after picking a start node, get a local information region using bfs
+def pick_region_nodes(start, edges, visited, region_size):
+    nodes = deque()
+    nodes.append(start)
+    pick_num = 1
+    pick_nodes = [start]
+
+    while pick_num < region_size:
+        current = nodes.popleft()
+        neighbor_nodes = [user2 for (user1, user2) in edges if\
+                            user1 == current and\
+                            visited[user2-1] == 0]
+
+        left_num = region_size - pick_num
+        if len(neighbor_nodes) > left_num:
+            samples = random.sample(set(neighbor_nodes), left_num)
+            for sample in samples:
+                visited[sample-1] = 1
+            pick_nodes.extend(samples)
+            break
+        else:
+            random.shuffle(neighbor_nodes)
+            for node in neighbor_nodes:
+                visited[node-1] = 1
+                pick_num += 1
+                pick_nodes.append(node)
+                nodes.append(node)
+
+    return pick_nodes
+
+
+# nodes pair that have same category is similar
+def is_dissimilar_pair(user1, user2, usercategory):
+    for i in range(NUM_CATEGORY):
+        if usercategory[user1][i] == usercategory[user2][i] and\
+        usercategory[user1][i] == '1':
+            return False
+
+    return True
+
+# sample suitable nodes to get dissimilar nodes pair list
+def get_d_with_sample(usercategory, region_num, region_size):
+    nodes = random.sample(range(NUM_NODES), region_num * region_size)
+    D = []
+
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            u = nodes[i]
+            v = nodes[j]
+            if is_dissimilar_pair(u, v, usercategory):
+                D.append((u, v))
+
+    return D
+
+
+# replace a element in a list by another element
+# used by substitude chunks id in generate positive constraints
+def replace_list(li, before, after):
+
+    for index, value in enumerate(li):
+        if value == before:
+            li[index] = after
+
+# generate positive and negative constraints
+def generate_constraints(S, D, data_set):
+
+    chunks = [-1] * NUM_NODES
+    cid = 0 #begin from zero
+    #generate positive constraints
+    for u, v in S:
+        if chunks[u] == -1 and chunks[v] == -1: #both not alloc
+            chunks[u] = chunks[v] = cid
+            cid += 1
+        elif chunks[u] == -1:
+            chunks[u] = chunks[v]
+        elif chunks[v] == -1:
+            chunks[v] = chunks[u]
+        else: #both has been allocated
+            if chunks[u] != chunks[v]:
+                min_id = min(chunks[u], chunks[v])
+                max_id = max(chunks[u], chunks[v])
+                replace_list(chunks, max_id, min_id)
+                if max_id != cid - 1:
+                    replace_list(chunks, cid - 1, max_id)
+                    cid -= 1
+
+    chunk_num = cid
+    #get negative links
+    neglinks = []
+    for i in range(chunk_num):
+        neglinks.append([0] * (chunk_num))
+
+    for u, v in D:
+        if chunks[u] != -1 and chunks[v] != -1 and\
+        chunks[u] != chunks[v]:
+            neglinks[chunks[u]][chunks[v]] += 1
+            neglinks[chunks[v]][chunks[u]] += 1
+
+    #output chunks
+    out_file = open("../data/%s/chunks.txt" % data_set, 'w')
+    for i in range(NUM_NODES):
+        if chunks[i] == -1:
+            out_file.write("%s\n" % chunks[i])
+        #because DCA algorithm using effective chunks beginning from 1
+        #add 1 to do the transfromation
+        else:
+            out_file.write("%s\n" % (chunks[i] + 1))
+    out_file.close()
+
+    #output neglinks
+    out_file = open("../data/%s/neglinks.txt" % data_set, "w")
+    for i in range(chunk_num):
+        out_file.write("%s\n" %
+                    " ".join([str(j) for j in neglinks[i]]))
+    out_file.close()
+
+def generate_constraint(region_num, region_size, data_set, num_nodes):
+    global NUM_NODES
+    NUM_NODES = num_nodes
+    edges = get_edges(data_set)
+    ranked_nodes = get_ranked_nodes(data_set) #order nodes by edges number
+    usercategory = get_usercategory(data_set) #ground truth
+
+    S = get_s_with_local_region(edges, ranked_nodes, usercategory, region_num, region_size)
+    D = get_d_with_sample(usercategory, region_num, region_size)
+
+    generate_constraints(S, D, data_set)
+
+\end{lstlisting}
+
+
+\begin{lstlisting}[language={matlab}, caption={DCA算法}, label=code:dca]
+
+function [B, DCA, newData]=DCA_func(data,chunks,neglinks,useD)
+
+[d,n] = size(data);
+if ~exist('useD','var')
+    useD=d;
+end
+
+%1. Compute means of chunks
+
+s=max(chunks);
+Cdata=[];
+AllInds=[];
+M=[];
+
+for i=1:s
+    inds=find(chunks==i);
+    M(:,i)=mean(data(:,inds)');    
+end
+
+%2. Compute Cb
+
+Cb=zeros(d,d);
+N_d=0;
+
+for j=1:s
+    inds=find(neglinks(j,:)>0);
+    for i=1:length(inds)
+        Cb=Cb+((M(:,j)-M(:,inds(i)))*(M(:,j)-M(:,inds(i)))');
+    end
+    N_d=N_d+length(inds);
+end
+
+if (N_d==0),
+    C_b=eye(d);
+else
+    Cb=Cb/N_d;
+end
+
+%3. Compute Cw
+
+Cw=zeros(d,d);
+N_w=0;
+for j=1:s
+    inds=find(chunks==j);
+    for i=1:length(inds)
+        Cw=Cw+(((data(:,inds(i))-M(:,j))*(data(:,inds(i))-M(:,j))'));
+    end
+    N_w=N_w+length(inds);
+end
+Cw=Cw/N_w;
+
+%4. Diagonalize Cb
+
+[eigVec, eigVal]=eig(Cb);
+[index]=find(abs(diag(eigVal))>1e-9);  % find Non-Zero EigVals 
+R=[];
+
+if (useD<d)
+    [YeigVal,index]=sort(-abs(diag(eigVal))); %decreasing order
+    R=[eigVec(:,index(1:useD))];
+else
+    R=[eigVec(:,index)];	% Each col of D is an eigenvector
+end
+
+Db=R'*Cb*R;
+Z=R*(Db)^(-0.5);
+
+% 5. Diagonalize Z'*Cw*Z
+
+Cz=Z'*Cw*Z;
+[eigVec, eigVal] = eig(Cz);
+Dw=eigVal;
+DCA=(Dw^(-0.5))*eigVec'*Z';
+B=DCA'*DCA;
+newData=DCA*data;
+\end{lstlisting}
+
+\begin{lstlisting}[language={python}, caption={DSHRINK算法}, label=code:dshrink]
+
+#nodes type constant
+TYPE_NORMAL = 1
+TYPE_COMBINE = 2 # this type of nodes are 'super nodes' that are combined by other nodes
+TYPE_NONE = 3
+# after node has been combined into super nodes, mark this node as type none
+# to note that this node does not exist any more
+
+MAX_DISTANCE = 100 #need to change accordingly
+
+epsilon = 3
+
+STEP_SIZE = 40
+
+NUM_NODES = 5209
+
+#import numpy as np #use numpy to compute median distance
+from collections import deque
+import random
+import operator
+
+from compute_purity import get_max_pi
+
+# class Node definition
+class Node(object):
+
+    def __init__(self, ntype=TYPE_NORMAL, children_list=None,
+                nearest_neighbor=MAX_DISTANCE, anearest_neighbors=[]):
+        self.ntype = TYPE_NORMAL
+        self.children_list = children_list
+        self.nearest_neighbor = nearest_neighbor #just need a value, the smallest distance between this node and other nodes
+        self.anearest_neighbors = anearest_neighbors
+
+
+    #dic is total distance between nodes in this cluster and all the other nodes
+    #sit[i] is total distance between node i and any other nodes
+    def get_dic(self, sit):
+        dic = 0
+        for i in self.children_list:
+            dic += sit[i]
+        return dic
+
+
+    def __str__(self):
+        return "%s %s %s" % (self.children_list, self.nearest_neighbor, self.anearest_neighbors)
+
+
+# read input file to get the distance matrix
+def compute_dm(data_set):
+    input_file = open("../data/%s/dca_distance.txt" % data_set)
+    dm = []
+
+    while True:
+        line = input_file.readline()
+
+        if not line:
+            break
+
+        values = [float(i) for i in line.strip().split(",")]
+        dm.append(values)
+
+    input_file.close()
+    return dm
+
+
+# initial nodes
+# at the beginning, each node is normal node which only contains one node
+def initial_nodes(dm):
+    nodes = []
+    for i in range(NUM_NODES):
+        node = Node()
+        node.children_list = [i]
+        for j in range(NUM_NODES):
+            if i == j:
+                continue
+            if dm[i][j] < node.nearest_neighbor:
+                node.nearest_neighbor = dm[i][j]
+        nodes.append(node)
+
+    return nodes
+
+
+# compute dt and sit for later use
+# dm is the total distance between any two nodes
+# sit[i] is the total distance between node i and any nodes
+def compute_dt_sit(dm):
+    node_num = NUM_NODES
+    dt = 0
+    sit = [0] * node_num
+    for i in range(node_num):
+        for j in range(node_num):
+            dt += dm[i][j]
+            sit[i] += dm[i][j]
+
+    return dt, sit
+
+
+# compute the total distance between any node in cluster s and any node in cluster t
+def compute_du(dm, s, t):
+    du = 0
+    for i in s.children_list:
+        for j in t.children_list:
+            du += dm[i][j]
+
+    return du
+
+
+# compute delta qd: the gains of distance-based modularity
+# for combine a list of cluster into a cluster
+def compute_delta_qd(dm, dt, node_list, nodes, sit):
+    dust = 0
+    dsdt = 0
+    for s in node_list:
+        for t in node_list:
+            if s != t:
+                dust += dt * compute_du(dm, nodes[s], nodes[t])
+                dsdt += nodes[s].get_dic(sit) * nodes[t].get_dic(sit)
+    return dust - dsdt
+
+# get a list of clusters to be combined
+# each cluster is represented by a list of node labels
+def get_community_list(nodes, dm):
+    visited = [0] * NUM_NODES
+    community_list = []
+
+    # get a list of nodes label which contain nodes not none
+    real_nodes = get_realnodes(nodes)
+    random.shuffle(real_nodes)
+
+    pos = 0
+    while pos < len(real_nodes):
+
+        # first pick a start node to start bfs
+        # pick nodes from real nodes which has not been visited, starting from pos
+        start_pos = pick_start_node(visited, real_nodes, pos)
+        if start_pos is None:
+            break
+        start = real_nodes[start_pos]
+
+        visited[start] = 1
+        node_list = bfs(nodes, start, visited, dm)
+        community_list.append(node_list)
+
+        # all the nodes before pos has been visited
+        pos = start_pos + 1
+
+    return community_list
+
+
+def get_realnodes(nodes):
+    real_nodes = []
+    for i in range(NUM_NODES):
+        if nodes[i].ntype != TYPE_NONE:
+            real_nodes.append(i)
+
+    return real_nodes
+
+
+
+# pick a start node successively in real nodes
+def pick_start_node(visited, real_nodes, pos):
+    for i in range(pos, len(real_nodes)):
+        if visited[real_nodes[i]] == 0:
+            return i
+    return None
+
+
+# using bfs to get a list of clusters after picking a start node
+def bfs(nodes, start, visited, dm):
+    node_list = deque()
+    node_list.append(start)
+    pick_nodes = [start]
+    max_fr = 0
+    min_fr = MAX_DISTANCE
+
+    while len(node_list) > 0:
+        current = node_list.popleft()
+
+        for node in nodes[current].anearest_neighbors:
+            if nodes[node].ntype == TYPE_NONE:
+                print "none type node %d is in %d's anearest_neighbors" % (node, current)
+                print "start is", start
+                print "node queue is", node_list
+                print "pick_nodes is", pick_nodes
+                exit(0)
+            if visited[node] == 0:
+                can_pick, max_distance, min_distance = try_pick_node(max_fr, min_fr, dm, pick_nodes, node)
+                if can_pick:
+                    visited[node] = 1
+                    max_fr, min_fr = max_distance, min_distance
+                    node_list.append(node)
+
+                    # put it here to get try pick node right
+                    pick_nodes.append(node)
+
+    return pick_nodes
+
+
+# if adding a node cause $max_fr - min_fr > epsilon$, stop adding
+def try_pick_node(max_fr, min_fr, dm, pick_nodes, v):
+    max_distance = 0
+    min_distance = MAX_DISTANCE
+    for i in pick_nodes:
+        if dm[i][v] > max_distance:
+            max_distance = dm[i][v]
+        elif dm[i][v] < min_distance:
+            min_distance = dm[i][v]
+
+    if max_distance > max_fr:
+        max_fr = max_distance
+    if min_distance < min_fr:
+        min_fr = min_distance
+
+    can_pick = epsilon >= max_fr - min_fr
+
+    return can_pick, max_fr, min_fr
+
+
+# update $max_fr, min_fr$ after adding a node to the node list
+def update_max_min_fr(max_fr, min_fr, dm, u, v):
+    if dm[u][v] > max_fr:
+        return dm[u][v], min_fr
+    elif dm[u][v] < min_fr:
+        return max_fr, dm[u][v]
+    return max_fr, min_fr
+
+
+# after combine a list of nodes into a super node
+# compute the distance between this super node and all other nodes
+def recompute_distance(nodes, dm, community, label):
+    nodes_num = len(community)
+    for i in range(NUM_NODES):
+        if i not in community and nodes[i].ntype != TYPE_NONE:
+            dm[i][label] = dm[label][i] = sum([dm[i][j] for j in community]) / nodes_num #use average distance
+            #dm[i][label] = dm[label][i] = min([dm[i][j] for j in community])
+
+# after a iteration of combines, recompute nearest neighbors for all nodes of type not none
+def compute_nearest_neighbors(nodes, dm):
+    for i in range(NUM_NODES):
+        if nodes[i].ntype != TYPE_NONE:
+            nodes[i].nearest_neighbor = MAX_DISTANCE
+            for j in range(NUM_NODES):
+                if nodes[j].ntype != TYPE_NONE and\
+                i != j and\
+                dm[i][j] < nodes[i].nearest_neighbor:
+                    nodes[i].nearest_neighbor = dm[i][j]
+
+
+# after a iteration of combines, recompute anearest neighbors for all nodes of type not none
+def compute_anearest_neighbors(nodes, dm):
+    #sort anearest neighbors by distance with current node
+    for i in range(NUM_NODES):
+        if nodes[i].ntype != TYPE_NONE:
+            nodes[i].anearest_neighbors = []
+            distance_list = dm[i]
+            sorted_list = sorted(enumerate(distance_list), key=operator.itemgetter(1))
+            for index, _ in sorted_list:
+                if nodes[index].ntype != TYPE_NONE and\
+                is_anearest_neighbor(i, index, dm, nodes):
+                    nodes[i].anearest_neighbors.append(index)
+
+
+# two nodes is anearest neighbors is described in the paper
+def is_anearest_neighbor(s, t, dm, nodes):
+    return (dm[s][t] == nodes[s].nearest_neighbor and
+            (dm[s][t] - nodes[t].nearest_neighbor) <= epsilon) or\
+            (dm[s][t] == nodes[t].nearest_neighbor and
+            (dm[s][t] - nodes[s].nearest_neighbor) <= epsilon)
+
+
+# the process to combine a list of nodes into a super node
+def combine_local_community(nodes, dm, community):
+
+    #first: given the smallest label to the community
+    label = min(community)
+    new_node = Node(ntype=TYPE_COMBINE)
+
+    #next: get the super nodes children list, which is nodes label this node contains
+    new_node.children_list = []
+    for i in community: #ensure nodes[i] != $TYPE_NONE$
+        new_node.children_list.extend(nodes[i].children_list)
+
+    nodes[label] = new_node
+
+    #next: recompute the distance between these nodes
+    recompute_distance(nodes, dm, community, label)
+
+    #finally: mark combined nodes as none type, except the label node
+    for i in community:
+        if i != label:
+            nodes[i].ntype = TYPE_NONE
+
+
+# get the minimum and maxmum distance in the distance matrix
+def get_minimum_distance(distance):
+    minimum = MAX_DISTANCE
+    maxmum = 0
+    for i in range(NUM_NODES):
+        for j in range(i+1, NUM_NODES):
+            if distance[i][j] != 0:
+                if distance[i][j] < minimum:
+                    minimum = distance[i][j]
+                elif distance[i][j] > maxmum:
+                    maxmum = distance[i][j]
+
+    return minimum, maxmum
+
+def get_purity(data_set, usercategory, num_nodes):
+    global NUM_NODES
+    NUM_NODES = num_nodes
+    nodes = dshrink(data_set)
+    purity_sum = 0
+    for node in nodes:
+        if node.ntype != TYPE_NONE:
+            purity_sum += get_max_pi(node.children_list, usercategory)
+
+    return float(purity_sum) / NUM_NODES
+
+# the main procedure of the dshrink algorithm
+def dshrink(data_set):
+
+    #first get dm, dm original
+    #dm original is just of a copy a dm, but it is needed to compute delta qd
+    #because dm may be updated during each iteration
+    dm_original = compute_dm(data_set)
+    dm = []
+    for i in dm_original:
+        new_list = [j for j in i]
+        dm.append(new_list)
+
+    #next initial list of nodes, compute their nearest neighbor and anearest neighbors
+    nodes = initial_nodes(dm)
+    compute_anearest_neighbors(nodes, dm)
+
+    #compute dt and sit for later use
+    dt, sit = compute_dt_sit(dm)
+
+    while True:
+        # in each loop, find a list of local communities,
+        # combine each community as a single node,
+        # stop when delta qd >= 0
+        community_list = get_community_list(nodes, dm)
+
+        decrease = False
+
+        for community in community_list:
+            if len(community) == 1:
+                continue
+            delta_qd = compute_delta_qd(dm_original, dt, community, nodes, sit)
+            if delta_qd < 0:
+                #print "here combine community", community
+                decrease = True
+                combine_local_community(nodes, dm, community)
+
+        #when there is no combine, stop
+        if not decrease:
+            break
+        else:
+            #don't need to compute anearest neighbors in each combine
+            #compute it after all combines
+            compute_nearest_neighbors(nodes, dm)
+            compute_anearest_neighbors(nodes, dm)
+
+        for node in nodes:
+            if node.ntype != TYPE_NONE:
+                #print node
+                #assure that each cluster has no duplicate node label
+                if len(set(node.children_list)) != len(node.children_list):
+                    print "has duplicate entry!!!!", node
+                    exit(0)
+
+    return nodes
+\end{lstlisting}
+
+\begin{lstlisting}[language={python}, caption={计算聚类的纯度}, label=code:purity]
+
+NUM_CATEGORY = 6
+NUM_NODES = 5118
+
+
+# read usercategory file and get user * category matrix
+def get_user_category(data_set):
+    in_file = open("../data/%s/usercategory.txt" % data_set)
+    usercategory = []
+    while True:
+        line = in_file.readline()
+
+        if not line:
+            break
+
+        items = line.strip().split(",")
+        usercategory.append(items)
+    in_file.close()
+    return usercategory
+
+
+# read result file and get a list of clusters represented by a list of user id
+def get_clusters(file_name):
+    in_file = open("../data/blogcatalog-b/result/region_num/%s" % file_name)
+    clusters = []
+    while True:
+        line = in_file.readline()
+
+        if not line:
+            break
+
+        items = line.strip().split(", ")
+        cluster = [int(i) for i in items]
+        clusters.append(cluster)
+    in_file.close()
+    return clusters
+
+
+#get the max number of users belongs to a specific category in a cluster
+def get_max_pi(cluster, usercategory):
+    category_count = [0] * NUM_CATEGORY
+    for node in cluster:
+        for category in range(NUM_CATEGORY):
+            if usercategory[node][category] == '1':
+                category_count[category] += 1
+    return max(category_count)
+
+
+# compute the purity of dshrink clustering
+def get_purity(file_name, usercategory):
+    clusters = get_clusters(file_name)
+    purity_sum = 0
+
+    for cluster in clusters:
+        purity_sum += get_max_pi(cluster, usercategory)
+
+    return float(purity_sum) / NUM_NODES
+\end{lstlisting}
+
+
+\begin{lstlisting}[language={python}, caption={自动化脚本}, label=code:auto]
+
+"""
+this is an automation script to run all dataset
+in different condition.
+At the same time, it can average the result to let it be more resonable
+"""
+
+import os
+
+from generate_constraints import generate_constraint
+from dshrink import get_purity
+from compute_purity import get_user_category
+
+REPEAT_TIME = 5
+
+def automate():
+    # for dataset blogcatalog
+    data_set = "blogcatalog"
+    num_nodes = 5118
+    run_dataset(data_set, num_nodes)
+
+    # for dataset blogcatalog-b
+    data_set = "blogcatalog-b"
+    num_nodes = 5209
+    run_dataset(data_set, num_nodes)
+
+def run_dataset(data_set, num_nodes):
+    usercategory = get_user_category(data_set)
+
+    pre_command = r"""matlab -nodisplay -nosplash -nodesktop -wait -r "run('"""
+    post_command = r"""');exit;" """
+    script_name = "c:\Users\liqi\Desktop\code_Metric_online\data\%s\dca_distance.m" % data_set
+    command = pre_command + script_name + post_command
+
+    # different region number
+    file_name = "../data/%s/result/region_num/summary_auto.txt" % data_set
+    region_size = 50
+    result = []
+    for region_num in range(4, 13): #4~12
+        average_purity = run_case(data_set, num_nodes,
+                region_size, region_num, usercategory, command)
+        result.append((region_num, average_purity))
+
+    output_purity(file_name, result)
+
+    #different region size
+    file_name = "../data/%s/result/node_max/summary_auto.txt" % data_set
+    region_num = 10
+    result = []
+    for region_size in range(20, 65, 5): #20~60
+        average_purity = run_case(data_set, num_nodes,
+                region_size, region_num, usercategory, command)
+        result.append((region_size, average_purity))
+
+    output_purity(file_name, result)
+
+
+def run_case(data_set, num_nodes, region_size, region_num, usercategory, command):
+
+    purity_total = 0
+    for i in range(REPEAT_TIME):
+        generate_constraint(region_num, region_size, data_set, num_nodes)
+
+        os.system(command)
+
+        purity = get_purity(data_set, usercategory, num_nodes)
+        purity_total += purity
+        print region_size, region_num, i, purity
+
+    average_purity = purity_total / REPEAT_TIME
+    print region_size, region_num, average_purity
+    return average_purity
+
+
+def output_purity(file_name, result):
+    out_file = open(file_name, "w")
+    for node_max, purity in result:
+        print node_max, purity
+        out_file.write("%d %f\n" % (node_max, purity))
+    out_file.close()
+\end{lstlisting}

@@ -23,7 +23,7 @@
 \usepackage{epsfig}
 \renewcommand{\algorithmicrequire}{\textbf{输入:}}
 \renewcommand{\algorithmicensure}{\textbf{输出:}}
-\renewcommand{\algorithmcfname}{算法}
+%\renewcommand{\algorithmicfname}{算法}
 \floatname{algorithm}{算法}
 %%%end of 使用算法
 
@@ -137,17 +137,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %% 附录(章节编号重新计算，使用字母进行编号)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-%\appendix
+\appendix
 
 %% 附录中编号形式是"A-1"的样子
-%\renewcommand\theequation{\Alph{chapter}--\arabic{equation}}
-%\renewcommand\thefigure{\Alph{chapter}--\arabic{figure}}
-%\renewcommand\thetable{\Alph{chapter}--\arabic{table}}
+\renewcommand\theequation{\Alph{chapter}--\arabic{equation}}
+\renewcommand\thefigure{\Alph{chapter}--\arabic{figure}}
+\renewcommand\thetable{\Alph{chapter}--\arabic{table}}
 
 %\include{body/app1} % 更新记录
 %\include{body/app2} % 麦克斯韦方程
-% \include{body/app3}
 
+\include{body/code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %% 文后(无章节编号)

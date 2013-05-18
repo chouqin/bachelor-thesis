@@ -70,12 +70,10 @@ DCA算法的目的是找到一个对于距离度量的最优线性转换
 使得相似集之间的总方差最大而相似集内部的总方差最小，
 也就是求解下面的最优化问题：
 
-$$
 \begin{equation}
     \label{equa:dca_opt}
     J(A) = \operatorname*{arg\,max}_A \frac {|A^\top \hat{C_b} A|} {|A^\top \hat{C_w} A|}
 \end{equation}
-$$
 
 当找到最优的$A$, 最优的马氏转换矩阵也就是$M = A^\top A$。
 
@@ -89,7 +87,7 @@ $$
 \begin{itemize}
     \item 使用特征分析把$\hat{C_b}$对角化： 
         \begin{itemize}
-            \item 找到一个矩阵$U$满足$U^\top\hat{C_b}U = \Lambda_b, U^\topU = I$，
+            \item 找到一个矩阵$U$满足$U^\top \hat{C_b} U = \Lambda_b, U^\top U = I$，
                 其中$\Lambda_b$是一个升序的对角矩阵;
             \item 选取$U$的后面$k$个特征值不为$0$的特征向量组成矩阵$\hat{U}$;
             \item 求得$D_b = \hat{U}^\top\hat{C_b}\hat{U}$;
@@ -104,3 +102,13 @@ $$
     \item 最终$A = Z\hat{V}\Lambda_w^{-1/2}, M = A^\top A$。 
         
 \end{itemize}
+
+DCA算法具体实现见\ref{code:dca}
+
+
+\section{本章小节}
+
+在本章中，我们提出了一种距离度量学习的算法——DCA，
+它能够利用信息网络的节点属性$X$，正语境限制$C$和负语境限制$D$，
+使用DCA算法学习距离度量矩阵$M$，
+通过$M$计算出的节点对之间的距离能够保证相似的节点之间拥有更近的距离。

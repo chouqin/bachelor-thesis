@@ -114,7 +114,7 @@ DSHRINK就是通过不断地把当地社区中的节点组合成一个超级节�
     (1) v \in V^\prime;
     (2) \forall u \in V^\prime, \exists v \in V^\prime \wedge u \xleftrightarrow[\epsilon]{} v;
     (3) \{u | u \in V^\prime \wedge u \xleftrightarrow[\epsilon]{} v \wedge v \notin V^\prime \} = \emptyset
-    (4) \text{如果} f(r) = \{r | r = d(s, t), s \xleftrightarrow[\epsilon]{} t \wedge s \in V^\prime \wedge t \in V^\prime }, |max(f(r)) = min(f(r))| \leq \epsilon
+    (4) \text{如果} f(r) = \{r | r = d(s, t), s \xleftrightarrow[\epsilon]{} t \wedge s \in V^\prime \wedge t \in V^\prime \}, |max(f(r)) = min(f(r))| \leq \epsilon
     $
     (5) 如果(3)和(4)不能同时被满足，要先保证(4)被满足。
 
@@ -200,8 +200,17 @@ DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
     \end{algorithmic}
 \end{algorithm}
 
+DSHRINK的实现代码见\ref{code:dshrink}。
+
 \section{对于DSHRINK算法的分析}
 
 从当地社区或$\epsilon$近似当地社区的定义可知，
 节点的访问顺序对于最终寻找的当地社区列表是没有什么影响的。
 而且，从整个过程来看，距离更近的节点会更早地被聚在一起，形成一个超级节点。
+
+\section{本章小节}
+
+在本章中，我们详细阐述了使用基于距离的聚类算法DSHRINK用于社区挖掘。
+DSHRINK通过不断地把距离较近的节点聚到一起形成一个超级节点来完成聚类的过程。
+使用模块性准则作为聚类终止的判断条件。通过实际的实验可知，
+采用$\epsilon$近似的DSHRINK聚类算法极大的减少了聚类的运行时间，加快了聚类的速度。
