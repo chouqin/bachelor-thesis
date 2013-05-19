@@ -1,27 +1,120 @@
-\chapter{英文大摘要}
-\label{chap:updatelog}
+\chapter{Community Detection in Incomplete Social Networks}
+\label{chap:longabstract}
 
-To summarize, this
-work contributes on the following aspects:
+Communities in social networks are groups of users which are densely
+connected inside the group, while loosely connected with nodes outside the group.
+Users belong to one community tends to have much more in common, 
+they may share some common interests or have some common properties.
+Detecting communities in social communities is very import to analyze
+social networks.
 
-We identify and define the problem of community detection in incomplete information networks with local
-information regions, i.e., an incomplete information
-network that still has a few tiny local regions where
-the complete linkage information is available.
-Mahalanobis distance
+Detecting communities in incomplete social networks has two meanings.
+First, detecting communities in social networks can be viewed as an clustering problem,
+of which there are many existing algorithms; 
+Second, when the social network is incomplete, that is, there are some information missing
+in the social networks, the problem gets much more tough.
+In this paper, we propose an algorithm that can detecting communities in incomplete social networks.
 
-In order to find a measurement, which can reflect the
-structural relation between the nodes in incomplete in-
-formation networks, we cast the side information of the
-network into an optimization problem. Then a metric,
-which can be used to measure the distance between
-any pair of nodes, is learned.
+First, we identify and define the problem of incomplete networks.
+Incomplete networks are information networks that have some information missing,
+while there are many kinds of information missing regards to this problem,
+in this paper, we deals with the incomplete information networks that still
+has a few tiny local information regions. In these local regions, we can obtain
+complete information of all nodes.
 
-Based on the learned metric, we devise a distance based modularity function to evaluate the quality of
-the communities.
+Second, we introduce a distance metric learning algorithm DCA to measure the 
+distance between nodes in information networks. Using this distance metric,
+we can compute the distance between any pair of nodes, which can reflect the
+structural relation between nodes in incomplete networks. That is,
+the distance between nodes that are similar to each other tends to be closer
+than nodes that are dissimilar. To get such a distance metric, 
+we turn the information in local information regions into 
+contextual constraints which indicate the relevance relationship (positive or negative)
+between nodes. The basic idea of DCA is to learn an
+optimal data transformation that leads to the optimal distance 
+metric by both maximizing the total variance between
+the discriminative data chunklets and minimizing the total
+variance of data instances in the same chunklets.
 
-Finally, we propose a distance based algorithm DSHRINK
-which can discover the hierarchical and overlapped com-
-munities. Moreover, in order to speedup the clustering
-process, an effective strategy is also taken.
+After such an distance metric has been learned, we can 
+use some clustering algorithm to finish the community detecting process. 
+In this paper, we propose a distance based clustering algorithm DSHRINK which can discover
+the hierarchical communities. The DSHRINK clustering algorithm works as follows：
+it iteratively combine nodes that are very closed to each other into one super nodes,
+which can be combined in the next iteration. A distance based modularity function is devised
+to evaluate the quality of the communities. Combination of low equality is stopped to 
+get high purity of the clustering. We use this modularity to guide our clustering algorithm.
+Moreover, so as to speedup the DSHRINK clustering process, we use an approximation strategy 
+which leads to more nodes being combined during each iteration.
 
+To evaluate the performance of our algorithm, we conduct a lot of experiments to compare
+the purity of community detection using our methods and the kmeans clustering algorithm.
+Empirical studies on real-world information networks show that our proposed
+method can effectively detect community structures within incomplete social networks.
+
+To conduct experiments, we first need to get proper datasets.
+The datasets we choose must satisfy the following three conditions:
+\begin{inparaenum}[i)]
+    \item Each nodes must have proper attributes.
+    \item There are some edges between nodes to generate local information regions.
+    \item Each nodes must have class labels as ground truth to evaluate the result of community detection.
+\end{inparaenum}
+In order to get such datasets, we first implement an python crawler to 
+crawl the data in the Weibo social networks. This crawler can get user's 
+tweets, profiles, followers and fans. At the same time, we use The NLPIR to cut words
+and extract keywords for each user, which can be used as attributes of an user.
+But because the limitation of Weibo, we can't crawl enough user's information,
+what's worse, most users in Weibo don't have class labels to use as ground truth.   
+So we finally choose use data of Blogcatalog to do the experiments. 
+PCA are used to reduce the dimension of attributes. Normalizing features
+are required before doing PCA.
+While the Weibo crawler we implemented can't be used to this project,
+can be very helpful to get data for future work.
+
+After proper datasets has been obtained, we need to generate contextual constraints 
+to learn distance metric. To generate positive constraints, 
+we use the structural similarity of nodes in the same local information regions.  
+Local information regions are sampled using this procedure:
+suppose we want to get regionNum local information regions, each local information has 
+regionSize nodes, we first randomly pick one node as start node, then use BFS to include 
+regionSize nodes from its neighbors, which is a local information region. The above procedure continues until we have sampled 
+regionNum local information regions. Negative constraints are generated using 
+randomly sampled regionNum times regionSize nodes.
+
+After the above process, using DCA to learn a distance metric, followed by DSHRINK to clustering nodes 
+based on the distance learned, we finish the whole procedure of our community detection method.
+In order to measure the effectiveness of our method, we adopt purity to evaluate the quality of the 
+communities generate by different approaches. The definition of purity is as follows:
+each cluster is first assigned with the class that has the most nodes in the cluster as it's label,
+number of nodes this label contains is the cluster's label count,
+and purity is defined by the sum of all clusters' label count divided by total number of nodes, 
+or more formally, in equation \ref{equa:purity}. Using this purity, 
+we compare our methods with kmeans clustering algorithm using different datasets 
+and under different conditions. Because of randomness of our method, 
+the result of each run may be significantly different even under the same conditions.  
+To overcome this randomness, each experiment is repeated 5 times and take the 
+average result as the final result.
+An automation script is implemented to execute this procedure automatically.  
+
+From result section \ref{sec:results} we can see that the method we proposed in this paper
+both have effectiveness and efficiency over kmeans.
+This is because our method not only use nodes' attributes
+to compute distance, but also use 
+the information in local information region as side knowledge.
+In the result we can see, 
+the larger the local region information's size,
+or the more the local region information's number,
+the more side knowledge we can obtain,
+which results in the higher purity.
+What's more, 
+our approach can automatically detect the appropriate number of cmmunities by minimizing the 
+distance based modularity. Since the number of communities is unknown, 
+kmeans method has great limitation because it must number of communities k must be known to
+use kmeans clustering. Choose the appropriate k is an hard problem which needs a lot of more 
+efforts. our method has great advantage for detecting communities than kmeans.
+
+The method we propose to detecting communities in incomplete networks 
+can not only be used in social networks, but also a wide range of domains.
+For example, we can use our method to biological networks, publication networks,
+terrorist-attack networks, food web, and so on. 
+It is very interesting to analyze these networks using our method. 

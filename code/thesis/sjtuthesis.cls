@@ -59,6 +59,10 @@
 \RequirePackage{mathtools,amsthm,amsfonts,amssymb,bm,mathrsfs} 
 \RequirePackage{upgreek}
 
+
+%% Inline itemize
+\RequirePackage{paralist}
+
 %% 定义几个常用的数学常量符号
 \newcommand{\me}{\mathrm{e}} %定义 对数常数e，虚数符号i,j以及微分算子d为直立体。
 \newcommand{\mi}{\mathrm{i}}
