@@ -173,6 +173,25 @@ def get_max_pi(cluster, usercategory):
 分别研究在不同的局部信息网络大小和不同的局部信息网络个数下面社区挖掘的结果，同时对于每一种情况，重复实验5次，
 取平均值作为实验结果。在每次实验时，首先生成正负语境限制，然后利用DCA算法进行距离度量学习，
 然后调用DSHRINK算法进行聚类，最后计算出聚类的纯度。
+由于自动化脚本采用Python语言实现，
+而整个实验过程除了DCA算法之外都采用Python语言实现，
+为了实现自动化的过程，必须能够在Python语言中调用matlab的脚本。
+我们经过研究，可以直接通过代码\ref{code:call}实现。
+
+\begin{lstlisting}[language={python}, caption={计算聚类的纯度}, label=code:call]
+
+# 引入模块用于执行系统命令
+import os
+
+# 根据数据集的不同，组合出不同的命令，用于调用
+pre_command = r"""matlab -nodisplay -nosplash -nodesktop -wait -r "run('"""
+post_command = r"""');exit;" """
+script_name = "%s\dca_distance.m" % data_set
+command = pre_command + script_name + post_command
+
+# 调用系统的命令
+os.system(command)
+\end{lstlisting}
 
 \section{实验结果}
 \label{sec:results}

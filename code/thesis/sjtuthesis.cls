@@ -10,7 +10,7 @@
 \DeclareOption{notypeinfo}{\sjtu@typeinfofalse}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 \ProcessOptions
-\LoadClass[fancyhdr,fntef,UTF8,winfonts]{ctexbook}[2005/11/25]
+\LoadClass[fancyhdr,fntef,UTF8,adobefonts]{ctexbook}[2005/11/25]
 
 %% 导入 sjtuthesis.cfg 文件
 \AtEndOfPackage{\makeatletter\input{sjtuthesis.cfg}\makeatother}

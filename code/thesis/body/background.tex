@@ -143,7 +143,7 @@ kmeans算法能够把数据划分为$k$个聚类。
 
 \subsection{凝聚层次聚类算法}
 
-凝聚层次聚类算法（Agglomerative Hierarchical Clustering）是分层聚类（Hierarchical Clustering）算法的一种，
+凝聚层次聚类算法（Agglomerative Hierarchical Clustering）是分层聚类（Hierarchical Clustering）算法的一种\upcite{arenas2008analysis,ronhovde2009multiresolution,lancichinetti2009detecting,sales2007extracting}，
 它采用自底向上的策略，首先将每一个对象作为一个类，
 然后根据某种度量(如2个当前类中心点的距离)将这些类合并为较大的类，
 不停地重复合并的过程，
@@ -224,5 +224,6 @@ spectural_idx = kmeans(V(:,1:k), k);
 \section{本章小节}
 
 在本章中，我们详细阐述了本文需要用到的关于距离和聚类的背景知识。
+本章中的内容大部分来自于《数据挖掘导论》这本数据挖掘的入门书籍\upcite{tan2007introduction}。
 了解这些知识对于理解本文具有很大的帮助。本文第\ref{chap:dca}章中的距离学习算法
 和第\ref{chap:dshrink}章聚类算法分别使用了本章提到的距离和聚类的知识作为理论基础。
