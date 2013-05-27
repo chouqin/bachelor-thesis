@@ -158,7 +158,10 @@
   showtabs=false,                  % show tabs within strings adding particular underscores
   stringstyle=\color{mymauve},     % string literal style
   tabsize=2,                       % sets default tabsize to 2 spaces
-  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+  title=\lstname,                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+  %texcl=true,
+  %escapeinside=``,
+  extendedchars=true,columns=flexible
 }
 %\lstset{tabsize=4, %
   %frame=shadowbox, %把代码用带有阴影的框圈起来

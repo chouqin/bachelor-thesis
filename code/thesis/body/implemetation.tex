@@ -92,7 +92,21 @@ Blogcatalog是一个博客社交网络, 它把人们与博客作者及博客作�
 生成负语境限制的方法相对简单，只需要随机选取regionNum乘regionSize个节点用于生成负语境限制。
 如果相似集$C_i$中的某个节点与相似集$C_j$不相似，那么$j \in D_i$且$i \in D_j$。
 
-具体实现的代码见\ref{code:constraint}。
+在已知了相似节点对列表S和不相似节点对列表D之后，生成正负语境限制的详细过程见\ref{code:constraint}，
+S的格式$[(u_1, v_1), (u_2, v_2), ...]$其中每一项对应的两个节点都相似，
+D的格式$[(u_1, v_1), (u_2, v_2), ...]$其中每一项对应的两个节点都不相似,
+输出chunks, 正语境限制和neglinks, 负语境限制。
+首先初始化chunks, 每一个节点都没有分配chunk，对应的chunkId是-1。
+然后遍历S，生成正语境限制。对于S中任意节点对u,v：
+\begin{inparaenum}[a)]
+    \item 如果它们都没有分配chunk, 把他们分配到一个新的chunk里;
+    \item 如果只是其中一个没有分配chunk，把它分配到另一个的chunk;
+    \item 如果两个都分配了chunk，那么合并这两个chunk。
+\end{inparaenum}
+然后开始生成负语境限制，首先初始化为neglinks为全0矩阵，
+也就是说对于任意两个chunks来说，它们不相似的程度为0。
+然后遍历D更新neglinks,对于D中的任意两个节点u,v，
+如果他们属于不同的已经分配的chunks，那么对应的neglinks加1。
 
 \section{结果好坏的评价标准}
 
@@ -115,6 +129,36 @@ Purity = \frac{1}{n} \sum_{i=1}^k \operatorname{max}_j |C_i \bigcap l_j|
 
 计算纯度的代码见\ref{code:purity}。
 
+\begin{lstlisting}[language={python}, caption={计算聚类的纯度}, label=code:purity]
+
+# 根据划分的聚类计算纯度
+# 输入clusters: 得到的一个个聚类
+# 输入NODE_NUM: 节点的个数
+# 输入usercategory: 用于验证
+def get_purity(clusters, NODE_NUM, usercategory):
+    purity_sum = 0 # 所有类的标签计数的和，初始化为0
+
+    for cluster in clusters:
+        purity_sum += get_max_pi(cluster, usercategory)
+
+    return float(purity_sum) / NUM_NODES #返回标签计数的和除以节点个数作为纯度
+
+# 得到一个聚类的标签计数
+# 输入cluster: 聚类，节点列表[c_1, c_2...] 
+# 输入usercategory: 用于验证
+def get_max_pi(cluster, usercategory):
+    category_count = [0] * NUM_CATEGORY #需要统计每一个类所拥有的节点个数，初始化都为0
+    
+    # 如果有一个节点属于某一个类，那么这个类的节点个数加1
+    for node in cluster:
+        for category in range(NUM_CATEGORY):
+            if usercategory[node][category] == '1':
+                category_count[category] += 1
+
+    return max(category_count) #返回所有类中最大的节点个数作为这个聚类的标签计数
+
+\end{lstlisting}
+
 
 \section{自动化实验}
 
@@ -124,7 +168,11 @@ Purity = \frac{1}{n} \sum_{i=1}^k \operatorname{max}_j |C_i \bigcap l_j|
 这需要进行大量的实验，因此需要一种自动化完成实验的方法。
 为此，我们实现了一个自动化的脚本，
 运行一次这个脚本能够完成整个实验的过程。
-自动化脚本的实现代码见\ref{code:auto}。
+
+自动化脚本的实现代码见\ref{code:auto}, 分别两组数据集Blogcatalog-a和Blogcatalog-b进行实验，对于每个数据集，
+分别研究在不同的局部信息网络大小和不同的局部信息网络个数下面社区挖掘的结果，同时对于每一种情况，重复实验5次，
+取平均值作为实验结果。在每次实验时，首先生成正负语境限制，然后利用DCA算法进行距离度量学习，
+然后调用DSHRINK算法进行聚类，最后计算出聚类的纯度。
 
 \section{实验结果}
 \label{sec:results}
@@ -175,14 +223,20 @@ Purity = \frac{1}{n} \sum_{i=1}^k \operatorname{max}_j |C_i \bigcap l_j|
 \subsection{实验结果分析}
 
 DSHRINK相对于kmeans有更高的纯度是因为kmeans只是单纯地根据节点之间的欧式距离进行聚类，
-而DSHRINK根据已知的信息在欧式距离的基础上进行了一定的调整，能够达到更好的聚类效果。
-而且，知道的信息越多，纯度越高。
+而DSHRINK根据已知的信息在欧式距离的基础上进行了一定的调整，
+这个距离能够保证相似的节点之间的距离更近，不相似的节点之间的距离更远。
+基于这个距离对节点进行聚类，
+能够达到更好的聚类效果。
+而且，局部信息网络的个数越多或者局部信息网路的大小越大，知道的信息越多，
+使用本文提到的算法进行聚类的纯度越高。
+
 同时，DSHRINK聚类能够根据模块性准则自动地得到一个合适的聚类个数，而对于kmeans来说，
 必须要先确定聚类的个数K才能聚类。对于实际的问题来说，聚类的个数是未知的，
 此时如果要使用kmeans算法的，就必须尝试各种不同的k来确定达到一个比较好的聚类效果。
 确定k的过程需要进行大量的实验，是一个十分耗时的过程。从这一点上，
-本文算法具有相当大的优势。
-
+本文算法具有相当大的优势。另外，从实验的过程中我们发现，
+最终结果的好坏和选取的$\epsilon$没有关系，但是更大的$\epsilon$能够导致在每次迭代的过程中，有更多的节点被
+合并到一个当地社区，因此能够减少迭代的次数，加快整个实验的运行。
 
 \section{本章小节}
 

@@ -1,4 +1,4 @@
-\chapter{Community Detection in Incomplete Social Networks}
+\chapter[英文大摘要]{Community Detection in Incomplete Social Networks}
 \label{chap:longabstract}
 
 Communities in social networks are groups of users which are densely
@@ -13,8 +13,20 @@ First, detecting communities in social networks can be viewed as an clustering p
 of which there are many existing algorithms; 
 Second, when the social network is incomplete, that is, there are some information missing
 in the social networks, the problem gets much more tough.
-In this paper, we propose an algorithm that can detecting communities in incomplete social networks.
 
+A lot of works have been done to detecting communities in social networks,
+Most of which focus on developing a clustering algorithm to do community detection.
+Modularity-based clustering algorithm view the clustering process as an optimization problem,
+which tries to find a clustering approach to maximize the modularity using some machine learning technicals. 
+Density-based clustering algorithm find communities by taking region with high density as a cluster and 
+taking region with low density as bound between clusters.
+SHRINK combine these two method, using a hierarchical clustering algorithm to do clustering, meanwhile 
+using modularity function to guide the whole process.
+As for information networks with information missing, 
+a distance metric can be learned by some distance metric learning algorithm,
+then some distance based clustering algorithm can be applied to do community detection.
+
+In this paper, we propose an algorithm that can detecting communities in incomplete social networks.
 First, we identify and define the problem of incomplete networks.
 Incomplete networks are information networks that have some information missing,
 while there are many kinds of information missing regards to this problem,

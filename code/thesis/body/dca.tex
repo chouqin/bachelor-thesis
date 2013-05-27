@@ -56,9 +56,11 @@ $C$和$D$的长度都为$n$，
 相似集之间的总方差和相似集内部的总方差。$\hat{C_b}$和$\hat{C_w}$的定义如下：
 
 \begin{align}
+\label{equa:cb}
     \hat{C_b} &= \frac{1}{n_b} \sum_{j=1}^n \sum_{i \in D_j} (\bm{m}_j - \bm{m}_i)(\bm{m}_j - \bm{m}_i)^\top \\
+\label{equa:cw}
     \hat{C_w} &= \frac{1}{n_b} \sum_{j=1}^n \frac{1}{n_j} \sum_{i = 1}^{n_j} (\bm{x}_{ij} - \bm{m}_j)(\bm{x}_{ij} - \bm{m}_j)^\top
-\end{align}
+\end{align} 
 
 其中$n_b = \sum_{j=1}^{n}|D_j|$, $|\bullet|$表示集合的基数，
 $n_j = |C_j|$,
@@ -77,34 +79,70 @@ DCA算法的目的是找到一个对于距离度量的最优线性转换
 
 当找到最优的$A$, 最优的马氏转换矩阵也就是$M = A^\top A$。
 
-\section{DCA算法的求解}
+\section{使用DCA算法进行求解}
 \label{sec:algorithm_dca}
+
 
 根据Fisher定理\upcite{mika1999fisher},
 等式\ref{equa:dca_opt}的最优解是一个同时使$\hat{C_b}$和$\hat{C_w}$对角化的转换矩阵。
-求解的详细过程如下：
+DCA算法的详细过程见算法\ref{algo:dca}，使用DCA算法，
+首先使用特征分析把相似集之间的协方差矩阵$\hat{C_b}$对角化,
+找到一个矩阵$U$满足$U^\top \hat{C_b} U = \Lambda_b, U^\top U = I$，
+其中$\Lambda_b$是一个升序的对角矩阵。
+通过去掉$U$中特征向量为0的特征向量，我们能够得到一个
+$k \times k$的矩阵$D_b$，这样我们能够得到一个转化矩阵$Z = \hat{U}D_b^{-1/2}$。
+利用它我们可以得到一个矩阵$C_z = Z^\top\hat{C_w}Z$和矩阵$V$满足
+满足$V^\top C_z V = \Lambda_w, V^\top V = I$，
+最终$A = Z\hat{V}\Lambda_w^{-1/2}, M = A^\top A$。 
+ 
+%\begin{itemize}
+    %\item 首先使用特征分析把$\hat{C_b}$对角化： 
+        %\begin{itemize}
+            %\item 找到一个矩阵$U$满足$U^\top \hat{C_b} U = \Lambda_b, U^\top U = I$，
+                %其中$\Lambda_b$是一个升序的对角矩阵;
+            %\item 选取$U$的后面$k$个特征值不为$0$的特征向量组成矩阵$\hat{U}$;
+            %\item 求得$D_b = \hat{U}^\top\hat{C_b}\hat{U}$;
+            %\item 求得$Z = \hat{U}D_b^{-1/2}, C_z = Z^\top\hat{C_w}Z$;
+        %\end{itemize}
 
-\begin{itemize}
-    \item 使用特征分析把$\hat{C_b}$对角化： 
-        \begin{itemize}
-            \item 找到一个矩阵$U$满足$U^\top \hat{C_b} U = \Lambda_b, U^\top U = I$，
-                其中$\Lambda_b$是一个升序的对角矩阵;
-            \item 选取$U$的后面$k$个特征值不为$0$的特征向量组成矩阵$\hat{U}$;
-            \item 求得$D_b = \hat{U}^\top\hat{C_b}\hat{U}$;
-            \item 求得$Z = \hat{U}D_b^{-1/2}, C_z = Z^\top\hat{C_w}Z$;
-        \end{itemize}
+    %\item 使用特征分析把$C_z$对角化： 
 
-    \item 使用特征分析把$C_z$对角化： 
+        %找到一个矩阵$V$满足$V^\top C_z V = \Lambda_w, V^\top V = I$，
+                %其中$\Lambda_w$是一个升序的对角矩阵。
 
-        找到一个矩阵$V$满足$V^\top C_z V = \Lambda_w, V^\top V = I$，
-                其中$\Lambda_w$是一个升序的对角矩阵。
-
-    \item 最终$A = Z\hat{V}\Lambda_w^{-1/2}, M = A^\top A$。 
+    %\item 最终$A = Z\hat{V}\Lambda_w^{-1/2}, M = A^\top A$。 
         
-\end{itemize}
+%\end{itemize}
 
-DCA算法具体实现见\ref{code:dca}
+\begin{algorithm}[htb]
+    \caption{DCA算法}
+    \label{algo:dca}
+    \begin{algorithmic}[1]
+        \Require
+        数据集$X = \{ \bm{x}_i \}_{i=1}^{N}$,
+        长度为n正语境限制$C$和负语境限制$D$        
+        \Ensure
+        最优的马氏转换矩阵$M$
+        \State 根据等式\ref{equa:cb}和\ref{equa:cw}计算$\hat{C_b}$和$\hat{C_w}$;
+        \State 对角化$\hat{C_b}$： 
+        \State 求得矩阵$U$使得$U^\top \hat{C_b} U = \Lambda_b, U^\top U = I$，
+            其中$\Lambda_b$是一个升序的对角矩阵;
+        \State $\hat{U}$ = $U$的后面$k$个特征值不为$0$的特征向量;
+        \State $D_b = \hat{U}^\top\hat{C_b}\hat{U}$;
+        \State $Z = \hat{U}D_b^{-1/2}, C_z = Z^\top\hat{C_w}Z$;
+        \State 求得矩阵$V$使得$V^\top C_z V = \Lambda_w, V^\top V = I$，
+                其中$\Lambda_w$是一个升序的对角矩阵;
+        \State $A = Z\hat{V}\Lambda_w^{-1/2}$; 
+        \State $M = A^\top A$; 
+        \Return $M$;
+    \end{algorithmic}
+\end{algorithm}
 
+可以看出，DCA算法实现起来十分简单，可以通过基本的矩阵运算来进行实现，
+相对于其他的一些距离度量学习算法\upcite{xing2002distance,Lin:2012:CDI:2187836.2187883}，
+DCA算法不需要求解凸型最优化问题，可以极大地减少运算量，具有很高的效率。
+
+DCA算法具体实现见\ref{code:dca}。
 
 \section{本章小节}
 
