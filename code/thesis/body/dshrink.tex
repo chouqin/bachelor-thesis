@@ -72,8 +72,11 @@ DSHRINK算法总是试图把相邻的节点聚到一起组成一个超级节点�
     \label{defn:mnn}
 
     给定一个不完全信息网络$G = (V, E, A, M)$,
-    节点$u, v$被称为互近邻，标记为：
-    $ u \xleftrightarrow{\gamma} v, iff v \in NN(u) \wedge u \in NN(v) \wedge d(u, v) = \gamma$。
+    如果$u$是$v$的最近邻居，
+    而且$v$是$u$的最近邻居，
+    那么我们称节点对$u, v$为互近邻，
+    标记为：
+    $ u \xleftrightarrow{\gamma} v, \text{当且仅当} v \in NN(u) \wedge u \in NN(v) \wedge d(u, v) = \gamma$。
 
 \end{defn}
 
@@ -93,9 +96,11 @@ DSHRINK就是通过不断地把当地社区中的节点组合成一个超级节�
 会导致整个聚类算法运行时间很长。因此，接下来给出一种更加松弛的当地社区定义。
 
 \begin{defn}{$\epsilon$近似互近邻}
+
     给定一个不完全信息网络$G = (V, E, A, M)$,
     节点$u, v$被称为$\epsilon$近似互近邻，标记为：
-    $ u \xleftrightarrow[\epsilon]{} v, iff 
+    $ u \xleftrightarrow[\epsilon]{} v$，如果
+    $
     (v \in NN(u) \wedge |d(u, v) - d(v, x)| \leq \epsilon) \vee
     (u \in NN(v) \wedge |d(u, v) - d(u, y)| \leq \epsilon)
     $。其中$
@@ -133,8 +138,10 @@ DSHRINK就是通过不断地把当地社区中的节点组合成一个超级节�
 DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
 整个算法分为两个部分，前面的初始化部分和后面聚类部分。
 在初始化时，除了初始化每一个节点成一个单独的聚类，还有一个重要的步骤就是计算$S_i^T$和$D^T$。
-对于任何一个节点$v_i$，所有节点和它的距离和是$s_i^T$，而任意两个节点对的距离和是$D^T$。
-在等式\ref{equa:delta-qd2}计算$\Delta Q_d$时需要$D^T$，
+对于任何一个节点$v_i$，所有节点和它的距离和是$S_i^T$，
+即$S_i^T = \sum{v_j in D} d(v_i, v_j)$，
+而任意两个节点对的距离和是$D^T$。
+在等式\ref{equa:delta-qd2}计算$\Delta Q_d$时需要$D^T$和$D_s^C$
 而$D_s^C = \sum_{v_i \in C_s, v_j \in V} d(v_i, v_j) = \sum_{v_i \in C_s} S_i^T$，
 所以提前计算出$S_i^T$和$D_i^T$能够节省一定的计算量。
 
@@ -146,8 +153,9 @@ DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
 在找到了所有的当地社区之后，对于每一个当地社区，我们准备把这个当地社区里的节点合并成一个超级节点，
 因此需要计算$\Delta Q_d$，此时把这个社区中每一个节点当成一个聚类，根据等式\ref{equa:delta-qd2}计算$\Delta Q_d$;
 如果$\Delta Q_d < 0$，说明把这个当地社区合并成一个超级节点能够造成聚类质量的增加，我们把这个当地社区合并为超级节点。
-否则，这个当地社区将不被合并，如果一轮迭代中，所有的当地社区都不能被合并，那么迭代终止，此时整个算法结束，否则继续进入下一轮迭代。
-每一个超级节点就是一个社区。关于算法的实现细节，有几点需要补充说明：
+否则，这个当地社区将不被合并，如果一轮迭代中，所有的当地社区都不能被合并，那么迭代终止，此时整个算法结束，每一个超级节点就是一个社区。
+否则继续进入下一轮迭代。
+关于算法的实现细节，有几点需要补充说明：
 
 \begin{itemize}
     \item 在每次循环时，需要找到一个当地社区列表，我们挑选C中的任何一个超级节点作为起始节点，
@@ -207,7 +215,7 @@ DSHRINK算法的详细过程如算法\ref{algo:dshrink}所示。
     \end{algorithmic}
 \end{algorithm}
 
-DSHRINK的实现代码见\ref{code:dshrink}。
+%DSHRINK的实现代码见\ref{code:dshrink}。
 
 \section{对于DSHRINK算法的分析}
 

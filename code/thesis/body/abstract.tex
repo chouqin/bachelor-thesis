@@ -16,9 +16,10 @@
     提出一种信息缺失情况下的社区挖掘算法。
     首先，利用已知的局部完整信息网络学习到一个的距离度量，
     利用这个度量，可以求得所有节点之间的距离。
-    然后，本文提出一种层次聚类方法，它能够基于节点之间的距离达到社区挖掘的目的。
+    然后，本文提出一种层次聚类方法，它能够基于节点之间的距离进行聚类，
+    从而达到社区挖掘的目的。
 
-    通过对比本文提出的算法和kmeans算法在基于Blogcatalog数据集下的精度，
+    通过对比本文提出的算法和kmeans算法在基于Blogcatalog数据集下的进行社区挖掘的结果，
     发现本文所实现的算法相对于kmeans算法具有更高的精度，
     对于信息缺失网络下的社区挖掘具有更高的可靠性和实用性。
 
@@ -36,9 +37,9 @@
     attracted much attention in the last decade.
 
     While community detection is very important, the task of collecting complete network
-    data in social networks remains challenging because modern social network is too large.
-    Usually we can only collect some nodes with complete information in a small number of local regions. 
-    Usually we can get a small number local information regions. 
+    data in social networks remains challenging because modern social networks are too large.
+    Getting information for all the nodes in social networks is hard to achieve, 
+    Usually we can get a small number local information regions, 
     Nodes in the local information region has complete information needed.
 
     In this paper, we proposed a community detection algorithm in incomplete social networks.
