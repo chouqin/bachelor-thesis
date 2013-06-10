@@ -11,4 +11,7 @@
 *.xdv
 *~
 *.fdb_latexmk
+*.nav
+*.snm
+*.vrb
 ppt.pdf
