@@ -76,7 +76,7 @@
 
 \begin{frame}{距离度量学习——DCA}
 \begin{itemize}[<+->]
-\item 距离度量： \[d_M(X, Y) = \sqrt{(X - Y)^\top M (X - Y)}\]
+    \item 距离度量：\[ d_o(X, Y) = \sqrt{(X - Y)(X - Y)}\] \[d_M(X, Y) = \sqrt{(X - Y)^\top M (X - Y)}\]
 \item 目的：让已知的相似的节点距离更近
 \item 最优化问题：\[ J(A) = \operatorname*{arg\,max}_A \frac {|A^\top \hat{C_b} A|} {|A^\top \hat{C_w} A|} \]
 \item 结果：\[ M = A^\top A \]
@@ -148,6 +148,11 @@ $Q_d$取值范围是[-1,0], $Q_d$越小，聚类的质量越好。
 \[
 Purity = \frac{1}{n} \sum_{i=1}^k \operatorname*{max}_j |C_i \bigcap l_j|
 \]
+
+$j$ : 聚类$C_i$的标签
+
+$\operatorname*{max} |C_i \bigcap l_j| $: 聚类$C_i$的标签计数
+
 \end{frame}
 
 \begin{frame}{实验结果——不同局部信息网络大小}
